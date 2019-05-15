@@ -1,0 +1,25 @@
+package com.tesco.substitutions.infrastructure.endpoints;
+
+import com.google.inject.Inject;
+import com.tesco.personalisation.commons.routing.EndpointBuilder;
+import com.tesco.personalisation.commons.routing.EndpointDefinition;
+import com.tesco.personalisation.commons.routing.EndpointDsl;
+import com.tesco.substitutions.application.handler.StatusEndpointHandler;
+
+public class StatusEndpointDefinition implements EndpointDefinition {
+
+    private static final String PATH = "/_status";
+    private final StatusEndpointHandler statusEndpointHandler;
+
+    @Inject
+    public StatusEndpointDefinition(final StatusEndpointHandler statusEndpointHandler) {
+        this.statusEndpointHandler = statusEndpointHandler;
+    }
+
+    @Override
+    public EndpointDsl.Endpoint prepare() {
+        return EndpointBuilder.forPath(PATH)
+                .GET()
+                .then(rc -> this.statusEndpointHandler.status(rc));
+    }
+}

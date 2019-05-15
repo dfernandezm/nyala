@@ -1,0 +1,12 @@
+
+# gradle repository in S3
+./aws.gradle
+
+#IDEA
+.idea
+
+
+.DS_Store
+vertx.log*
+./out
+

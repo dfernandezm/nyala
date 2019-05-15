@@ -1,0 +1,145 @@
+repositories {
+
+    maven {
+        url "s3://gradle-repository"
+        credentials(AwsCredentials) {
+            accessKey project.hasProperty('awsAccessKey') ? project.awsAccessKey : System.getenv("GRADLE_S3_REPO_AWS_KEY")
+            secretKey project.hasProperty('awsSecret') ? project.awsSecret : System.getenv("GRADLE_S3_REPO_AWS_SECRET_KEY")
+        }
+    }
+
+    mavenLocal()
+
+    mavenCentral()
+
+    maven {
+        url = 'http://oss.sonatype.org/content/repositories/snapshots/'
+    }
+
+    jcenter()
+}
+
+ext {
+    commonsCollectionsVersion = '4.1'
+    commonsLangVersion = '3.4'
+    commonsIoVersion = '2.5'
+    vertxVersion = '3.4.2'
+    guiceVersion = '4.1.0'
+    rxJavaVersion = '2.1.0'
+    typesafeVersion = '1.2.1'
+    slf4jVersion = '1.7.21'
+    logbackVersion = '1.1.2'
+    restAssuredVersion = '3.0.3'
+    moustacheVersion = '0.9.4'
+    junitVersion = '4.+'
+    mockitoVersion = '1.10.19'
+    hamcrestVersion = '1.3'
+    vertxSwaggerVersion = '1.2.0'
+    rxReactiveStreamsVersion='1.2.1'
+    lombokVersion='1.18.8'
+    hystrixVersion = '1.5.12'
+    vavrVersion = '0.9.1'
+    apacheHttpVersion='4.5'
+    cglibVersion = '3.2.7'
+    commonsVersion = '1.2.1'
+
+}
+
+dependencies {
+    //TrexCommons
+    compile "com.tesco.personalisation:commons:$commonsVersion"
+
+    //Commons
+    compile group: "org.apache.commons", name: "commons-collections4", version: "$commonsCollectionsVersion"
+    compile group: "org.apache.commons", name: "commons-lang3", version: "$commonsLangVersion"
+    compile(group: "commons-io", name: "commons-io", version: "$commonsIoVersion") {
+        force = true
+    }
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: "$apacheHttpVersion"
+
+    //Vertx
+    compile "io.vertx:vertx-unit:$vertxVersion"
+    compile "io.vertx:vertx-core:$vertxVersion"
+    compile "io.vertx:vertx-web:$vertxVersion"
+    compile "io.vertx:vertx-web-client:$vertxVersion"
+    compile "io.vertx:vertx-rx-java:$vertxVersion"
+    compile "io.vertx:vertx-service-proxy:$vertxVersion"
+    compile "io.vertx:vertx-codegen:$vertxVersion"
+    compile "io.vertx:vertx-hazelcast:$vertxVersion"
+    compile "io.vertx:vertx-dropwizard-metrics:$vertxVersion"
+    compile "io.vertx:vertx-redis-client:$vertxVersion"
+
+    //vertx-swagger
+    compile(group: 'com.github.phiz71', name: 'vertx-swagger-router', version: "$vertxSwaggerVersion")
+
+    //MongoDB Client
+    compile "io.vertx:vertx-mongo-client:$vertxVersion"
+
+
+    compile group: 'org.projectlombok', name: 'lombok', version: "$lombokVersion"
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: "$lombokVersion"
+
+    //Guice
+    compile "com.google.inject:guice:$guiceVersion"
+    compile group: 'com.google.inject.extensions', name: 'guice-multibindings', version: "$guiceVersion"
+
+
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.7.4"
+
+    //RX
+    // https://mvnrepository.com/artifact/io.reactivex.rxjava2/rxjava
+    compile(group: 'io.reactivex.rxjava2', name: 'rxjava', version: "$rxJavaVersion")
+
+    //Config
+    compile "com.typesafe:config:$typesafeVersion"
+
+    //Logging
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
+    compile "ch.qos.logback:logback-classic:$logbackVersion"
+
+    //Hystrix
+    compile "com.netflix.hystrix:hystrix-core:$hystrixVersion"
+
+    //Javaslang
+    compile "io.vavr:vavr:$vavrVersion"
+
+    //Test
+    testCompile "org.hamcrest:hamcrest-all:$hamcrestVersion"
+    testCompile(group: "junit", name: "junit", version: "$junitVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
+    testCompile("org.mockito:mockito-all:$mockitoVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
+    testCompile("io.vertx:vertx-unit:$vertxVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
+    testCompile("io.vertx:vertx-core:test-jar$vertxVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
+    testCompile("io.rest-assured:rest-assured:$restAssuredVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
+    testCompile("io.rest-assured:json-path:$restAssuredVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
+    testCompile(
+            'junit:junit:4.12',
+            'org.codehaus.groovy:groovy-all:2.4.4',
+            'org.spockframework:spock-core:1.0-groovy-2.4',
+            'org.assertj:assertj-core:2.0.0',
+            'com.github.kstyrc:embedded-redis:0.6',
+            'de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.47.0',
+            'com.github.tomakehurst:wiremock:2.6.0'
+    )
+
+    testCompile("io.rest-assured:json-path:$restAssuredVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
+
+    testCompile "cglib:cglib-nodep:$cglibVersion"
+
+
+
+
+}

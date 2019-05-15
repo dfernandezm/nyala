@@ -1,0 +1,6 @@
+// Put here the keys for Gradle Maven REPO S3
+ext {
+    awsAccessKey='YOUR_KEY'
+    awsSecret='YOUR_SECRET'
+}
+

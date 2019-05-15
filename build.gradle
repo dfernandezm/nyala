@@ -1,0 +1,31 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'base'
+apply plugin: 'signing'
+apply plugin: 'jacoco'
+apply plugin: 'groovy'
+
+wrapper {
+    gradleVersion = '5.3'
+    distributionUrl = distributionUrl.replace("bin", "all")
+}
+
+
+if (file('aws.gradle').exists()) {
+    apply from: 'aws.gradle'
+}
+
+apply from: './gradle/commonDependencies.gradle'
+apply from: './gradle/tasks.gradle'
+apply from: './gradle/dockertasks.gradle'
