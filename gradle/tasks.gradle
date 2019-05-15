@@ -1,0 +1,111 @@
+def generatedSources = ['com/tesco/**']
+
+test {
+    jacoco {
+        includes = generatedSources
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.0"
+}
+
+jacocoTestReport {
+    doFirst {
+        classDirectories = fileTree(dir: "${buildDir}/classes/main/").include(generatedSources).exclude("com/tesco/productlist/domain/model/*.class")
+    }
+
+}
+
+test {
+
+    jacoco {
+        includes = generatedSources
+    }
+
+    afterTest { desc, result ->
+        def time = result.endTime - result.startTime
+        println "Test [${desc.className}] ${desc.name}: ${result.resultType} in ${time}ms"
+    }
+    testLogging {
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                println "Results: ${result.resultType} -->  ${result.testCount} tests ( ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped ) "
+            }
+        }
+    }
+}
+
+
+jar {
+    from sourceSets.main.allSource
+    baseName = project.findProperty('mavenArtifactId')
+    group = project.findProperty('group')
+    version = project.findProperty('version')
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes('Main-Class': project.mainClass,
+                'Main-Verticle': project.mainVerticle)
+    }
+    baseName = project.findProperty('mavenArtifactId')
+    group = project.findProperty('group')
+    version = project.findProperty('version')
+    classifier = 'all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    baseName = project.findProperty('mavenArtifactId')
+    group = project.findProperty('group')
+    version = project.findProperty('version')
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task copyConfig( type:org.gradle.api.tasks.Copy, description: 'Copy configurations into build config' ) {
+    from 'src/main/resources/config'
+    into 'build/config'
+}
+
+task configZip( type: Zip, dependsOn: 'copyConfig', description: 'Package the config .zip file') {
+    classifier = "config"
+    description = "Package the config .zip file'"
+    destinationDir = project.file('build/libs')
+    archiveName = project.findProperty('mavenArtifactId') + "-" + project.findProperty('version') + "-" + classifier + ".zip"
+    from copyConfig
+}
+
+artifacts {
+    archives fatJar, sourcesJar, configZip
+}
+
+task generatePom {
+    doLast {
+        pom {
+        }.writeTo("$buildDir/libs/" + project.findProperty('mavenArtifactId') + "-$project.version" + ".pom")
+    }
+}
+
+compileJava() {
+    dependsOn generatePom
+}
+
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+signing {
+    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+repositories {
+    flatDir {
+        name "fileRepo"
+        dirs "repo"
+    }
+}
+
+

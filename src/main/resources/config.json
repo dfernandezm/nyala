@@ -1,0 +1,28 @@
+{
+  "config": {
+    "gracefulShutdownEnabled": false,
+    "server": true,
+    "http.port": 9014,
+    "redisConfiguration": {
+      "host": "127.0.0.1",
+      "port": 6379,
+      "ssl": false
+    }
+  },
+  "verticles": [
+    {
+      "main": "com.fazula.server.application.verticle.ChannelsVerticle",
+      "options": {
+        "instances": 1,
+        "config": {}
+      }
+    },
+    {
+      "main": "com.fazula.server.commons.vertx.verticle.StatusVerticle",
+      "options": {
+        "instances": 1,
+        "config": {}
+      }
+    }
+  ]
+}
