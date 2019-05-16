@@ -45,7 +45,7 @@ task copyDependencies(type: org.gradle.api.tasks.Copy) {
     from 'docker/'
     from "build/libs/${project.name}-${project.version}-all.jar"
     into "build/docker/"
-    rename ("${project.name}-${project.version}-all.jar", "${project.name}.jar")
+    rename ("${project.name}-${project.version}-all.jar", "subs.jar")
 }
 
 task createDockerfile(type: Dockerfile) {
