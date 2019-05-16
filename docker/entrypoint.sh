@@ -24,6 +24,6 @@ term_handler() {
 
 trap "echo 'Starting handler for termination...'; term_handler" SIGINT SIGTERM
 echo "PID of shell is $$"
-java -jar -Dfile.encoding=UTF-8 $JAVA_OPTS $API_OPTS TrexSubs.jar -conf /opt/app/config.json &
+java -jar -Dfile.encoding=UTF-8 $JAVA_OPTS $API_OPTS trexsubs.jar -conf /opt/app/config.json &
 PID=$!
 wait $PID
