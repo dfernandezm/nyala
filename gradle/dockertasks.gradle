@@ -74,7 +74,7 @@ task createDockerfile(type: Dockerfile) {
 
     workingDir '$API_HOME'
 
-    exposePort 9004
+    exposePort 9014
 
     runCommand 'apt-get update'
     runCommand 'apt-get install wget'

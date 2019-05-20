@@ -11,7 +11,7 @@ import javax.inject.Named;
 
 public class SubstitutionsRoutes implements RoutesDefinition {
 
-    public static final String SUBSTITUTIONS_MOUNT_POINT = "/substitutions/";
+    public static final String SUBSTITUTIONS_MOUNT_POINT = "/substitution/v1/substitutions/";
     private final List<EndpointDefinition> endpointDefinitions;
 
     @Inject
