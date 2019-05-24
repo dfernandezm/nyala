@@ -20,6 +20,7 @@ import rx.schedulers.Schedulers;
 public class HttpRedisService implements SubstitutionsService {
 
     private static final Long REDIS_FIND_TIMEOUT = 3000L;
+    public static final String REDIS_KEYS_SUBS_NAMESPACE = "originalTpn_";
     private RedisClient redisClient;
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpRedisService.class);
 
@@ -31,22 +32,30 @@ public class HttpRedisService implements SubstitutionsService {
     @Override
     public Single<List<SubstitutionCandidate>> substitutionsFor(UnavailableProduct unavailableProduct) {
         long startTime = System.currentTimeMillis();
-        Single<JsonArray> redisResult = redisClient.rxGet(unavailableProduct.tpnb().toString())
+        Single<JsonArray> redisResult = redisClient.rxGet(addNamespaceToTpnb(unavailableProduct.tpnb().toString()))
 				.timeout(REDIS_FIND_TIMEOUT, TimeUnit.MILLISECONDS)
                 .onErrorResumeNext(this::logError)
                 .observeOn(Schedulers.computation())
                 .map(redisReponse -> {
                     if (redisReponse == null) {
-                        LOGGER.info("Substitutions NOT found in {} ms",(System.currentTimeMillis() - startTime));
+                        LOGGER.info("Substitutions NOT found in {} ms", calculateTimeFrom(startTime));
                         LOGGER.info("Returning empty substitution candidates");
                         return new JsonArray();
                     } else {
-                        LOGGER.info("Substitutions found in {} ms",(System.currentTimeMillis() - startTime));
+                        LOGGER.info("Substitutions found in {} ms",(calculateTimeFrom(startTime)));
                         return new JsonArray(transformRedisResponseToJsonArray(redisReponse));
                     }
                 });
 
         return redisResult.map(HttpRedisService::asRecommendationCandidates);
+    }
+
+    private long calculateTimeFrom(long startTime) {
+        return System.currentTimeMillis() - startTime;
+    }
+
+    private String addNamespaceToTpnb(String tpnb) {
+        return REDIS_KEYS_SUBS_NAMESPACE + tpnb;
     }
 
     private String transformRedisResponseToJsonArray(String redisResponse) {

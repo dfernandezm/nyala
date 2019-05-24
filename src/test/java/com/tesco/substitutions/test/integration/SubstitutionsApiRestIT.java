@@ -7,6 +7,7 @@ import static org.hamcrest.core.StringContains.containsString;
 import com.google.common.net.MediaType;
 import com.tesco.substitutions.application.handler.SubsHandler;
 import com.tesco.substitutions.application.verticle.MainStarter;
+import com.tesco.substitutions.infrastructure.adapter.HttpRedisService;
 import com.tesco.substitutions.infrastructure.endpoints.StatusEndpointDefinition;
 import com.tesco.substitutions.infrastructure.endpoints.SubsEndpointDefinition;
 import com.tesco.substitutions.infrastructure.endpoints.SubstitutionsRoutes;
@@ -236,7 +237,7 @@ public class SubstitutionsApiRestIT {
     private void insertSubstitutionsInRedisForTpnb(String tpnb) {
         RedisClient client = getRedisClient(v);
         //TODO read tpnbs subs from the response json file
-        client.rxSet(tpnb, "11111111,2222222").subscribe();
+        client.rxSet(HttpRedisService.REDIS_KEYS_SUBS_NAMESPACE + tpnb, "11111111,2222222").subscribe();
     }
 
     private Map<Object, Object> getExpectedFullJsonResponse() {
