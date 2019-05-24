@@ -18,7 +18,7 @@ class HttpRedisServiceSpec extends Specification{
         given : "Redis has tpnbs as keys, it provides substitutes candidates per each tpnb"
         RedisClient redisMock = Mock();
         httpRedisService = new HttpRedisService(redisMock);
-        1 * redisMock.rxGet(tpnb.toString()) >> Single.just(redisSubstitutesResponse);
+        1 * redisMock.rxGet(HttpRedisService.REDIS_KEYS_SUBS_NAMESPACE + tpnb.toString()) >> Single.just(redisSubstitutesResponse);
 
         when: "We request a substitution for a tpnb to HttpRedisService"
         def result = httpRedisService.substitutionsFor(UnavailableProduct.of(tpnb)).toBlocking().value();
