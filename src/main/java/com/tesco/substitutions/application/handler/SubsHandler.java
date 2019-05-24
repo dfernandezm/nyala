@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
 public class SubsHandler {
 
     private static final String SUBSTITUTIONS_JSON_OBJECT_NAME_RESPONSE = "substitutions";
-    private static final String TPNB_UNAVAILABLE_PRODUCT_PARAMETER = "unavailableTpnb";
-    private static final String BAD_REQUEST_ERROR_MESSAGE = "Unable to provide substitutions. The tpnb is not passed correctly";
-    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+    public static final String TPNB_UNAVAILABLE_PRODUCT_PARAMETER = "unavailableTpnb";
+    public static final String BAD_REQUEST_ERROR_MESSAGE = "Unable to provide substitutions. The tpnb is not passed correctly";
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubsHandler.class);
 
     private final SubstitutionsApplicationService substitutionsApplicationService;
 
@@ -27,25 +27,35 @@ public class SubsHandler {
     }
 
     private static boolean validateTpnb(final String tpnb) {
-        return StringUtils.isNotEmpty(tpnb);
+        return StringUtils.isNotEmpty(tpnb) && isWellFormatted(tpnb);
+    }
+
+    private static boolean isWellFormatted(String tpnb) {
+        try {
+            Long.parseLong(tpnb);
+        }catch(Exception e){
+            LOGGER.info("tpnb is not well formatted {} ", tpnb);
+            return false;
+        }
+        return true;
     }
 
     public void substitutions(final RoutingContext routingContext) {
 
         final HttpServerResponse response = routingContext.response();
         final String unavailableTpnb = routingContext.request().getParam(TPNB_UNAVAILABLE_PRODUCT_PARAMETER);
-        if (SubsHandler.validateTpnb(unavailableTpnb)) {
-            this.LOGGER.info("Asking for substitutions for {} ", unavailableTpnb);
-            this.obtainCandidateSubstitutionsFor(response, unavailableTpnb);
+        if (validateTpnb(unavailableTpnb)) {
+            LOGGER.info("Asking for substitutions for {} ", unavailableTpnb);
+            this.obtainCandidateSubstitutionsFor(response,  Long.parseLong(unavailableTpnb));
         } else {
-            this.LOGGER.info("Bad request happened, parameters could not been validated");
+            LOGGER.info("Bad request happened, parameters could not been validated");
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST).setStatusMessage(
                     BAD_REQUEST_ERROR_MESSAGE)
                     .end();
         }
     }
 
-    private void obtainCandidateSubstitutionsFor(final HttpServerResponse response, final String unavailableTpnb) {
+    private void obtainCandidateSubstitutionsFor(final HttpServerResponse response, final Long unavailableTpnb) {
         this.substitutionsApplicationService.obtainCandidateSubstitutionsFor(unavailableTpnb)
                 .subscribe(result -> {
                     final JsonObject responseObject = new JsonObject();

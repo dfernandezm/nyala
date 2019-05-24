@@ -29,6 +29,8 @@ public class StatusVerticle extends AbstractVerticle {
     @Named("redisConfiguration")
     private JsonObject redisConfiguration;
 
+    @Inject
+    @Named("redisClient")
     private RedisClient redisClient;
 
     @Override

@@ -12,7 +12,7 @@ import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.redis.RedisClient;
 
 public class InfrastructureBinder extends AbstractModule {
-
+    //TODO duplicated code for vertx,context and redisclient binding
     private final Vertx vertx;
     private final Context context;
 

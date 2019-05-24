@@ -88,7 +88,7 @@ public class SubstitutionsStatusRestIT {
 
     private static void configureRestAssured(final DeploymentOptions options) {
         RestAssured.baseURI = HTTP_LOCALHOST_BASE_URI;
-        RestAssured.basePath = SubstitutionsRoutes.SUBSTITUTIONS_MOUNT_POINT;
+        RestAssured.basePath = SubstitutionsRoutes.SUBSTITUTIONS_MODULE_BASE_PATH;
         RestAssured.port = options.getConfig().getInteger(HTTP_PORT_KEY);
     }
 
@@ -120,7 +120,7 @@ public class SubstitutionsStatusRestIT {
                 header("Accept-Encoding", "application/json").
                 log().all().
                 when().
-                get("_status").
+                get("/_status").
                 then().
                 log().all().
                 assertThat().

@@ -120,6 +120,9 @@ dependencies {
     testCompile("io.rest-assured:rest-assured:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
+    testCompile("io.rest-assured:json-schema-validator:$restAssuredVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
     testCompile("io.rest-assured:json-path:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }

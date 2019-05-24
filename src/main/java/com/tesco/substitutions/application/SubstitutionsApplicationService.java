@@ -1,5 +1,6 @@
 package com.tesco.substitutions.application;
 
+import com.google.inject.Inject;
 import com.tesco.substitutions.domain.model.SubstitutionCandidate;
 import com.tesco.substitutions.domain.model.UnavailableProduct;
 import com.tesco.substitutions.domain.service.SubstitutionsService;
@@ -14,13 +15,14 @@ public class SubstitutionsApplicationService {
     private final static Logger LOGGER = LoggerFactory.getLogger(SubstitutionsApplicationService.class);
     private SubstitutionsService substitutionsService;
 
-
-    public SubstitutionsApplicationService() {
-
+    @Inject
+    public SubstitutionsApplicationService(final SubstitutionsService substitutionsService) {
+        this.substitutionsService = substitutionsService;
     }
 
-    public Single<List<SubstitutionCandidate>> obtainCandidateSubstitutionsFor(final String unavailableTpnb) {
-        return this.substitutionsService.substitutionsFor(UnavailableProduct.of(unavailableTpnb));
+    public Single<List<SubstitutionCandidate>> obtainCandidateSubstitutionsFor(final Long unavailableTpnb) {
+        LOGGER.info("Requesting substitutions for {} to the substitution service adapter", unavailableTpnb);
+        return substitutionsService.substitutionsFor(UnavailableProduct.of(unavailableTpnb));
     }
 
 }

@@ -7,5 +7,5 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public class UnavailableProduct {
 
-    private String uuid;
+    private Long tpnb;
 }

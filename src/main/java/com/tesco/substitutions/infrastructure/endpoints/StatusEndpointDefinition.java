@@ -8,7 +8,7 @@ import com.tesco.substitutions.application.handler.StatusEndpointHandler;
 
 public class StatusEndpointDefinition implements EndpointDefinition {
 
-    private static final String PATH = "/_status";
+    public static final String STATUS_PATH = "/_status";
     private final StatusEndpointHandler statusEndpointHandler;
 
     @Inject
@@ -18,8 +18,9 @@ public class StatusEndpointDefinition implements EndpointDefinition {
 
     @Override
     public EndpointDsl.Endpoint prepare() {
-        return EndpointBuilder.forPath(PATH)
+        return EndpointBuilder.forPath(STATUS_PATH)
                 .GET()
                 .then(rc -> this.statusEndpointHandler.status(rc));
+
     }
 }

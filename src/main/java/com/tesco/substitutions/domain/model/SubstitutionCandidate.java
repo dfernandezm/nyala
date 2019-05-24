@@ -6,5 +6,4 @@ import lombok.Value;
 public class SubstitutionCandidate {
 
     private Long tpnb;
-    private Double score;
 }

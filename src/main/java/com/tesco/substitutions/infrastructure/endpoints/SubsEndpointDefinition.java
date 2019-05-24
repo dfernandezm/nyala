@@ -1,13 +1,14 @@
-package com.tesco.substitutions.application.handler;
+package com.tesco.substitutions.infrastructure.endpoints;
 
 import com.google.inject.Inject;
 import com.tesco.personalisation.commons.routing.EndpointBuilder;
 import com.tesco.personalisation.commons.routing.EndpointDefinition;
 import com.tesco.personalisation.commons.routing.EndpointDsl;
+import com.tesco.substitutions.application.handler.SubsHandler;
 
 public class SubsEndpointDefinition implements EndpointDefinition {
 
-    private static final String PATH = "/substitutes";
+    public  static final String SUBSTITUTES_PATH = "/substitutes";
     private final SubsHandler subsHandler;
 
     @Inject
@@ -17,7 +18,7 @@ public class SubsEndpointDefinition implements EndpointDefinition {
 
     @Override
     public EndpointDsl.Endpoint prepare() {
-        return EndpointBuilder.forPath(PATH)
+        return EndpointBuilder.forPath(SUBSTITUTES_PATH)
                 .GET()
                 .then(this.subsHandler::substitutions);
     }
