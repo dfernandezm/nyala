@@ -47,7 +47,7 @@ public class HttpRedisService implements SubstitutionsService {
                     }
                 });
 
-        return redisResult.map(HttpRedisService::asRecommendationCandidates);
+        return redisResult.map(HttpRedisService::asSubstitutionCandidates);
     }
 
     private long calculateTimeFrom(long startTime) {
@@ -62,9 +62,9 @@ public class HttpRedisService implements SubstitutionsService {
         return "[" + redisResponse + "]";
     }
 
-    private static List<SubstitutionCandidate>  asRecommendationCandidates(
+    private static List<SubstitutionCandidate>  asSubstitutionCandidates(
             final JsonArray jsonArray) {
-        return  jsonArray.stream().map(subtpnb -> SubstitutionCandidate.of(new Long(subtpnb.toString()))).collect(Collectors.toList());
+        return  jsonArray.stream().map(subtpnb -> SubstitutionCandidate.of(subtpnb.toString())).collect(Collectors.toList());
 
     }
 

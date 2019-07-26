@@ -6,7 +6,7 @@
   "title": "The Root Schema",
   "required": [
     "substitutions"
-    ],
+  ],
   "properties": {
     "substitutions": {
       "$id": "#/properties/substitutions",
@@ -18,19 +18,20 @@
         "title": "The Items Schema",
         "required": [
           "tpnb"
-          ],
+        ],
         "properties": {
           "tpnb": {
             "$id": "#/properties/substitutions/items/properties/tpnb",
-            "type": "integer",
+            "type": "string",
             "title": "The Tpnb Schema",
-            "default": 0,
+            "default": "",
             "examples": [
-              11111111
-              ]
-            }
+              "11111111"
+            ],
+            "pattern": "^(.*)$"
           }
         }
       }
     }
   }
+}

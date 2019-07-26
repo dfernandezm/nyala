@@ -5,5 +5,8 @@ import lombok.Value;
 @Value(staticConstructor = "of")
 public class SubstitutionCandidate {
 
-    private Long tpnb;
+    private String tpnb;
 }
+
+
+

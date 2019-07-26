@@ -1,5 +1,6 @@
 package com.tesco.substitutions.application.handler;
 
+import com.tesco.personalisation.commons.vertx.verticle.StatusVerticle;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import org.apache.http.HttpStatus;
@@ -11,7 +12,7 @@ public class StatusEndpointHandler {
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     public void status(final RoutingContext routingContext) {
-        routingContext.vertx().eventBus().<JsonObject>rxSend("status", new JsonObject())
+        routingContext.vertx().eventBus().<JsonObject>rxSend(StatusVerticle.STATUS_ADDRESS, new JsonObject())
                 .subscribe(statusMessage -> {
                     // successful status
                     this.LOGGER.info("Successfully status returned");

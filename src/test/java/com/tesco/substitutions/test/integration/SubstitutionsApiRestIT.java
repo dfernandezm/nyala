@@ -188,6 +188,27 @@ public class SubstitutionsApiRestIT {
     }
 
     @Test
+    public void substitutes_endpoint_returns_subs_candidates_list_for_a_tpnb_that_starts_with_a_zero_and_has_subs() {
+
+        String tpnb = "09999999";
+        insertSubstitutionsInRedisForTpnb(tpnb);
+        given().
+                header(HttpHeaders.ACCEPT_ENCODING, MediaType.JSON_UTF_8.toString()).
+                queryParam(SubsHandler.TPNB_UNAVAILABLE_PRODUCT_PARAMETER, tpnb).
+                log().all().
+                when().
+                get(SubsEndpointDefinition.SUBSTITUTES_PATH).
+                then().
+                log().all().
+                assertThat().
+                contentType(ContentType.JSON).
+                assertThat().body(JsonSchemaValidator.matchesJsonSchemaInClasspath(TREXSUBS_SUBSTITUTES_SCHEMA_JSON)).
+                assertThat().body("", equalTo(getExpectedFullJsonResponse())).
+                statusCode(HttpStatus.SC_OK);
+
+    }
+
+    @Test
     public void a_bad_request_status_code_and_custom_message_is_returned_if_no_tpnb_has_been_passed_as_parameter() {
 
         given().

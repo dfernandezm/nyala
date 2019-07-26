@@ -20,7 +20,7 @@ public class SubstitutionsApplicationService {
         this.substitutionsService = substitutionsService;
     }
 
-    public Single<List<SubstitutionCandidate>> obtainCandidateSubstitutionsFor(final Long unavailableTpnb) {
+    public Single<List<SubstitutionCandidate>> obtainCandidateSubstitutionsFor(final String unavailableTpnb) {
         LOGGER.info("Requesting substitutions for {} to the substitution service adapter", unavailableTpnb);
         return substitutionsService.substitutionsFor(UnavailableProduct.of(unavailableTpnb));
     }

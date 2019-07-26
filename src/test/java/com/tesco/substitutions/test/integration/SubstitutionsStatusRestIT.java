@@ -3,7 +3,6 @@ package com.tesco.substitutions.test.integration;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-import com.tesco.substitutions.test.integration.mockedservices.EmbeddedRedis;
 import com.tesco.substitutions.application.verticle.MainStarter;
 import com.tesco.substitutions.infrastructure.endpoints.SubstitutionsRoutes;
 import io.restassured.RestAssured;

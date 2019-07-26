@@ -17,7 +17,7 @@
         }
       },
       {
-        "main": "com.tesco.substitutions.application.verticle.StatusVerticle",
+        "main": "com.tesco.personalisation.commons.vertx.verticle.StatusVerticle",
         "options": {
           "instances": 1,
           "config": {
@@ -25,7 +25,7 @@
         }
       },
       {
-        "main": "com.tesco.substitutions.test.integration.mockedservices.EmbeddedRedis",
+        "main": "com.tesco.personalisation.commons.test.mockedservices.EmbeddedRedis",
         "options": {
           "instances": 1,
           "config": {

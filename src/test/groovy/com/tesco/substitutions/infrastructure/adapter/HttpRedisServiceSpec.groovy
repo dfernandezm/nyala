@@ -28,8 +28,8 @@ class HttpRedisServiceSpec extends Specification{
 
         where: "if Redis has substitutes, that list of tpnbs substitutes should be returned. If no substitutions were found an empty list is returned"
 
-        tpnb                        ||      redisSubstitutesResponse     ||     expectedSubstitutionCandidatesList
-        58396818                    ||         "11111111,22222222"       ||     new ArrayList<SubstitutionCandidate>(Arrays.asList(SubstitutionCandidate.of(11111111),SubstitutionCandidate.of(22222222)))
-        98396818                    ||          null                     ||     new ArrayList<SubstitutionCandidate>()
+        tpnb                          ||      redisSubstitutesResponse     ||     expectedSubstitutionCandidatesList
+        "58396818"                    ||         "11111111,22222222"       ||     new ArrayList<SubstitutionCandidate>(Arrays.asList(SubstitutionCandidate.of("11111111"),SubstitutionCandidate.of("22222222")))
+        "98396818"                    ||          null                     ||     new ArrayList<SubstitutionCandidate>()
     }
 }

@@ -1,7 +1,7 @@
 package com.tesco.substitutions.application.handler;
 
+import com.tesco.personalisation.commons.vertx.errorhandling.ErrorHandler;
 import com.tesco.substitutions.application.SubstitutionsApplicationService;
-import com.tesco.substitutions.application.helpers.ErrorHandler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.core.http.HttpServerResponse;
@@ -46,7 +46,7 @@ public class SubsHandler {
         final String unavailableTpnb = routingContext.request().getParam(TPNB_UNAVAILABLE_PRODUCT_PARAMETER);
         if (validateTpnb(unavailableTpnb)) {
             LOGGER.info("Asking for substitutions for {} ", unavailableTpnb);
-            this.obtainCandidateSubstitutionsFor(response,  Long.parseLong(unavailableTpnb));
+            this.obtainCandidateSubstitutionsFor(response,  unavailableTpnb);
         } else {
             LOGGER.info("Bad request happened, parameters could not been validated");
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST).setStatusMessage(
@@ -55,13 +55,13 @@ public class SubsHandler {
         }
     }
 
-    private void obtainCandidateSubstitutionsFor(final HttpServerResponse response, final Long unavailableTpnb) {
+    private void obtainCandidateSubstitutionsFor(final HttpServerResponse response, final String unavailableTpnb) {
         this.substitutionsApplicationService.obtainCandidateSubstitutionsFor(unavailableTpnb)
                 .subscribe(result -> {
                     final JsonObject responseObject = new JsonObject();
                     responseObject.put(SUBSTITUTIONS_JSON_OBJECT_NAME_RESPONSE, new JsonArray(result));
                     response.setStatusCode(HttpStatus.SC_OK).end(responseObject.encodePrettily());
-                }, error -> ErrorHandler.prepareErrorResponse(response, error));
+                }, error -> ErrorHandler.prepareErrorResponse(response, error, "Obtaining substitutions connection timeout"));
     }
 
 }

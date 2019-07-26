@@ -41,13 +41,13 @@ ext {
     vavrVersion = '0.9.1'
     apacheHttpVersion='4.5'
     cglibVersion = '3.2.7'
-    commonsVersion = '1.2.1'
+    commonsVersion = '1.2.5'
 
 }
 
 dependencies {
     //TrexCommons
-    compile "com.tesco.personalisation:commons:$commonsVersion"
+    compile "com.tesco:commons:$commonsVersion"
 
     //Commons
     compile group: "org.apache.commons", name: "commons-collections4", version: "$commonsCollectionsVersion"
@@ -139,6 +139,7 @@ dependencies {
     testCompile("io.rest-assured:json-path:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
+
 
     testCompile "cglib:cglib-nodep:$cglibVersion"
 
