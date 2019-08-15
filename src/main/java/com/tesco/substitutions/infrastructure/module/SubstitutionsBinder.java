@@ -9,9 +9,10 @@ import com.google.inject.name.Named;
 import com.tesco.personalisation.commons.routing.EndpointDefinition;
 import com.tesco.personalisation.commons.routing.EventBusDefinition;
 import com.tesco.personalisation.commons.routing.RoutesDefinition;
+import com.tesco.substitutions.infrastructure.adapter.SubstitutesRedisService;
+import com.tesco.substitutions.infrastructure.endpoints.BulkSubsEndpointDefinition;
 import com.tesco.substitutions.infrastructure.endpoints.SubsEndpointDefinition;
 import com.tesco.substitutions.domain.service.SubstitutionsService;
-import com.tesco.substitutions.infrastructure.adapter.HttpRedisService;
 import com.tesco.substitutions.infrastructure.endpoints.StatusEndpointDefinition;
 import com.tesco.substitutions.infrastructure.endpoints.SubstitutionsRoutes;
 import io.vertx.core.json.JsonObject;
@@ -36,7 +37,7 @@ public class SubstitutionsBinder extends AbstractModule {
     @Override
     protected void configure() {
         this.bind(Vertx.class).toInstance(this.vertx);
-        this.bind(SubstitutionsService.class).to(HttpRedisService.class);
+        this.bind(SubstitutionsService.class).to(SubstitutesRedisService.class);
         this.bindRoutes();
     }
 
@@ -44,8 +45,8 @@ public class SubstitutionsBinder extends AbstractModule {
     @Singleton
     @Named("substitutionsEndpoints")
     static List<EndpointDefinition> endpointDefinitions(final StatusEndpointDefinition statusEndpointDefinition,
-            final SubsEndpointDefinition subsEndpointDefinition) {
-        return ImmutableList.of(statusEndpointDefinition, subsEndpointDefinition);
+            final SubsEndpointDefinition subsEndpointDefinition, final BulkSubsEndpointDefinition bulkSubsEndpointDefinition) {
+        return ImmutableList.of(statusEndpointDefinition, subsEndpointDefinition, bulkSubsEndpointDefinition);
     }
 
     // Empty as RouterFactory expects the eventBusDefinitions as well

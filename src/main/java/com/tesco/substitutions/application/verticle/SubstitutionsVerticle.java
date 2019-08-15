@@ -13,12 +13,11 @@ import io.vertx.rxjava.core.http.HttpServer;
 import io.vertx.rxjava.ext.web.Router;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SubstitutionsVerticle extends AbstractVerticle {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
     private Injector injector;
 
     @Override
@@ -30,12 +29,11 @@ public class SubstitutionsVerticle extends AbstractVerticle {
     private void startHttpServer(final Future<Void> startFuture) {
         final Integer port = this.config().getInteger("http.port");
         this.httpServer().rxListen(port).subscribe(httpServer -> {
-            this.LOGGER.info("Substitutions HTTP server started at: {} on port {}", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
-                    port);
-            this.LOGGER.info("Substitutions Verticle deployed");
+            log.info("Substitutions HTTP server started at: {} on port {}", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT), port);
+            log.info("Substitutions Verticle deployed");
             startFuture.complete();
         }, error -> {
-            this.LOGGER.error("Server unable to start: {}", error.getMessage());
+            log.error("Server unable to start: {}", error.getMessage());
             startFuture.fail(error.getMessage());
         });
     }
@@ -48,7 +46,7 @@ public class SubstitutionsVerticle extends AbstractVerticle {
     }
 
     private HttpServer httpServer() {
-        this.LOGGER.info("Setting up HTTP server");
+        log.info("Setting up HTTP server");
         final HttpServerOptions options = new HttpServerOptions();
 
         final Router router = this.setupRouter();

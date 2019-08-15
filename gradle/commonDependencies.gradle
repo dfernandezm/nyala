@@ -140,7 +140,6 @@ dependencies {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
 
-
     testCompile "cglib:cglib-nodep:$cglibVersion"
 
 

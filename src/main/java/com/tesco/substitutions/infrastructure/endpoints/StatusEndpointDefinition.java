@@ -20,7 +20,6 @@ public class StatusEndpointDefinition implements EndpointDefinition {
     public EndpointDsl.Endpoint prepare() {
         return EndpointBuilder.forPath(STATUS_PATH)
                 .GET()
-                .then(rc -> this.statusEndpointHandler.status(rc));
-
+                .then(this.statusEndpointHandler::status);
     }
 }

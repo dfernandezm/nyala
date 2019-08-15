@@ -34,7 +34,7 @@ public class SubstitutionsStatusRestIT {
     private static final int NUMBER_INSTANCES = 1;
     private static final String HTTP_LOCALHOST_BASE_URI = "http://localhost";
     private static final String HTTP_PORT_KEY = "http.port";
-    protected static Vertx v;
+    private static Vertx vertx;
     private static Set<String> deploymentIDs;
 
     //TODO refactor once we do the refactor of the tests code. Duplicate code.
@@ -44,9 +44,9 @@ public class SubstitutionsStatusRestIT {
         ConfigureRestAssuredLog();
 
         final Async async = context.async();
-        v = Vertx.vertx();
+        vertx = Vertx.vertx();
 
-        v.fileSystem().readFile(CONFIG_JSON_FILE, result -> {
+        vertx.fileSystem().readFile(CONFIG_JSON_FILE, result -> {
             if (result.succeeded()) {
                 final JsonObject config = result.result().toJsonObject();
 
@@ -57,11 +57,11 @@ public class SubstitutionsStatusRestIT {
                         NUMBER_INSTANCES).setConfig(config);
 
                 configureRestAssured(options);
-                v.deployVerticle(MainStarter.class.getName(), options,
+                vertx.deployVerticle(MainStarter.class.getName(), options,
                         ar -> {
                             if (ar.succeeded()) {
                                 async.complete();
-                                saveDeplomentIds(v.deploymentIDs());
+                                saveDeplomentIds(vertx.deploymentIDs());
 
                             } else {
                                 context.fail(ar.cause());
@@ -96,20 +96,18 @@ public class SubstitutionsStatusRestIT {
     @AfterClass
     public static void tearDown() {
         RestAssured.reset();
-
         undeployVerticles();
-
         waitUntilVertxContextIsClosed();
     }
 
     private static void undeployVerticles() {
-        deploymentIDs.stream().forEach(id -> {
-            v.rxUndeploy(id).toBlocking().value();
+        deploymentIDs.forEach(id -> {
+            vertx.rxUndeploy(id).toBlocking().value();
         });
     }
 
     private static void waitUntilVertxContextIsClosed() {
-        final Single<Void> result = v.rxClose();
+        final Single<Void> result = vertx.rxClose();
         result.toBlocking().value();
     }
 
@@ -127,6 +125,4 @@ public class SubstitutionsStatusRestIT {
                 contentType(ContentType.JSON).
                 body("message", equalTo("alive"));
     }
-
-
 }

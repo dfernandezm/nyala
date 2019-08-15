@@ -1,0 +1,64 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "title": "The Root Schema",
+  "required": [
+    "substitutions"
+  ],
+  "properties": {
+    "substitutions": {
+      "$id": "#/properties/substitutions",
+      "type": "array",
+      "title": "The Substitutions Schema",
+      "items": {
+        "$id": "#/properties/substitutions/items",
+        "type": "object",
+        "title": "The Items Schema",
+        "required": [
+          "tpnb",
+          "substitutes"
+        ],
+        "properties": {
+          "tpnb": {
+            "$id": "#/properties/substitutions/items/properties/tpnb",
+            "type": "string",
+            "title": "The Tpnb Schema",
+            "default": "",
+            "examples": [
+              "64522828"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "substitutes": {
+            "$id": "#/properties/substitutions/items/properties/substitutes",
+            "type": "array",
+            "title": "The Substitutes Schema",
+            "items": {
+              "$id": "#/properties/substitutions/items/properties/substitutes/items",
+              "type": "string",
+              "title": "The Items Schema",
+              "default": "",
+              "examples": [
+                "56906502",
+                "71166006",
+                "80401162",
+                "80568675",
+                "60227361",
+                "73545851",
+                "73545868",
+                "85718485",
+                "82535515",
+                "60227614"
+              ],
+              "pattern": "^(.*)$"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+

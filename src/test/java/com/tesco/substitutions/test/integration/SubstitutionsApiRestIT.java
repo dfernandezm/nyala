@@ -1,23 +1,33 @@
 package com.tesco.substitutions.test.integration;
 
+import static com.google.common.net.MediaType.JSON_UTF_8;
+import static com.tesco.substitutions.application.handler.SubsHandler.BAD_REQUEST_EMPTY_BODY_MESSAGE;
+import static com.tesco.substitutions.application.handler.SubsHandler.BAD_REQUEST_ERROR_MESSAGE;
+import static com.tesco.substitutions.application.handler.SubsHandler.UNAVAILABLE_MULTIPLE_TPNBS_PARAMETER;
+import static com.tesco.substitutions.application.handler.SubsHandler.UNAVAILABLE_TPNB_PARAMETER;
+import static com.tesco.substitutions.infrastructure.endpoints.SubsEndpointDefinition.SUBSTITUTES_PATH;
 import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
+import static org.apache.http.HttpHeaders.ACCEPT_ENCODING;
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.StringContains.containsString;
 
-import com.google.common.net.MediaType;
+import com.google.common.collect.Lists;
 import com.tesco.substitutions.application.handler.SubsHandler;
 import com.tesco.substitutions.application.verticle.MainStarter;
-import com.tesco.substitutions.infrastructure.adapter.HttpRedisService;
-import com.tesco.substitutions.infrastructure.endpoints.StatusEndpointDefinition;
-import com.tesco.substitutions.infrastructure.endpoints.SubsEndpointDefinition;
+import com.tesco.substitutions.infrastructure.adapter.SubstitutesRedisService;
 import com.tesco.substitutions.infrastructure.endpoints.SubstitutionsRoutes;
 import io.restassured.RestAssured;
 import io.restassured.config.LogConfig;
 import io.restassured.config.RestAssuredConfig;
-import io.restassured.http.ContentType;
 import io.restassured.module.jsv.JsonSchemaValidator;
 import io.restassured.path.json.JsonPath;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -28,9 +38,11 @@ import io.vertx.rxjava.redis.RedisClient;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.http.HttpHeaders;
+import java.util.stream.Collectors;
 import org.apache.http.HttpStatus;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -48,9 +60,11 @@ public class SubstitutionsApiRestIT {
     private static final String HTTP_PORT_KEY = "http.port";
     private static final String REDIS_CONFIGURATION_KEY = "redisConfiguration";
     private static final String TEST_DATA_TREXSUBS_RESPONSE_JSON_FILE = "testData/trexsubsResponse.json";
+    private static final String TEST_DATA_TREXSUBS_BULK_RESPONSE_JSON_FILE = "testData/trexsubsBulkResponse.json";
     private static final String TREXSUBS_SUBSTITUTES_SCHEMA_JSON = "testData/trexsubsSubstitutesSchema.json";
+    private static final String TREXSUBS_BULK_SUBSTITUTES_SCHEMA_JSON = "testData/trexsubsBulkSubstitutesSchema.json";
     private static final String CONFIG_JSON_KEY = "config";
-    private static Vertx v;
+    private static Vertx vertx;
     private static Set<String> deploymentIDs;
 
 
@@ -61,9 +75,9 @@ public class SubstitutionsApiRestIT {
         ConfigureRestAssuredLog();
 
         final Async async = context.async();
-        v = Vertx.vertx();
+        vertx = Vertx.vertx();
 
-        v.fileSystem().readFile(CONFIG_JSON_FILE, result -> {
+        vertx.fileSystem().readFile(CONFIG_JSON_FILE, result -> {
             if (result.succeeded()) {
                 final JsonObject config = result.result().toJsonObject();
 
@@ -74,17 +88,15 @@ public class SubstitutionsApiRestIT {
                         NUMBER_INSTANCES).setConfig(config);
 
                 configureRestAssured(options);
-                v.deployVerticle(MainStarter.class.getName(), options,
+                vertx.deployVerticle(MainStarter.class.getName(), options,
                         ar -> {
                             if (ar.succeeded()) {
                                 async.complete();
-                                saveDeplomentIds(v.deploymentIDs());
-
+                                saveDeplomentIds(vertx.deploymentIDs());
                             } else {
                                 context.fail(ar.cause());
                             }
                         });
-
             } else {
                 context.fail(result.cause());
             }
@@ -107,7 +119,7 @@ public class SubstitutionsApiRestIT {
         RestAssured.port = options.getConfig().getInteger(HTTP_PORT_KEY);
     }
 
-    private  static RedisClient getRedisClient(Vertx vertx){
+    private static RedisClient getRedisClient(Vertx vertx) {
         JsonObject config = (vertx.fileSystem().readFileBlocking(CONFIG_JSON_FILE).toJsonObject());
         RedisOptions redisOptions = new RedisOptions(config.getJsonObject(CONFIG_JSON_KEY).getJsonObject(REDIS_CONFIGURATION_KEY));
         return RedisClient.create(vertx, redisOptions);
@@ -117,155 +129,258 @@ public class SubstitutionsApiRestIT {
     @AfterClass
     public static void tearDown() {
         RestAssured.reset();
-
         undeployVerticles();
-
         waitUntilVertxContextIsClosed();
     }
 
     private static void undeployVerticles() {
-        deploymentIDs.stream().forEach(id -> {
-            v.rxUndeploy(id).toBlocking().value();
-        });
+        deploymentIDs.stream().forEach(id -> vertx.rxUndeploy(id).toBlocking().value());
     }
 
     private static void waitUntilVertxContextIsClosed() {
-        final Single<Void> result = v.rxClose();
+        final Single<Void> result = vertx.rxClose();
         result.toBlocking().value();
-    }
-
-    //TODO duplicate from SubstitutionsStatus, do we want to keep this here and remove the other class? If we can extract the common test code, probably leave it in status test
-    @Test
-    public void status_endpoint_returns_alive_message() {
-        given().
-                header(HttpHeaders.ACCEPT_ENCODING, MediaType.JSON_UTF_8.toString()).
-                log().all().
-                when().
-                get(StatusEndpointDefinition.STATUS_PATH).
-                then().
-                log().all().
-                assertThat().
-                statusCode(HttpStatus.SC_OK).
-                contentType(ContentType.JSON).
-                body("message", equalTo("alive"));
     }
 
     @Test
     public void substitutes_endpoint_returns_empty_substitutions_for_a_tpnb_not_found() {
-        given().
-                header(HttpHeaders.ACCEPT_ENCODING, MediaType.JSON_UTF_8.toString()).
-                queryParam(SubsHandler.TPNB_UNAVAILABLE_PRODUCT_PARAMETER, "11111122").
-                log().all().
-                when().
-                get(SubsEndpointDefinition.SUBSTITUTES_PATH).
-                then().
-                log().all().
-                assertThat().
-                contentType(ContentType.JSON).
-                assertThat().body(containsString("\"substitutions\" : [ ]")).
-                statusCode(HttpStatus.SC_OK);
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .queryParam(UNAVAILABLE_TPNB_PARAMETER, "11111122")
+                .log().all()
+                .when()
+                .get(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .assertThat().body(containsString("\"substitutions\" : [ ]"))
+                .statusCode(SC_OK);
     }
 
     @Test
-    public void substitutes_endpoint_returns_subs_candidates_list_for_a_tpnb_that_has_subs() {
+    public void substitutes_endpoint_returns_substitutions_list_for_a_tpnb_that_has_subs() {
 
         String tpnb = "99999999";
         insertSubstitutionsInRedisForTpnb(tpnb);
-        given().
-                header(HttpHeaders.ACCEPT_ENCODING, MediaType.JSON_UTF_8.toString()).
-                queryParam(SubsHandler.TPNB_UNAVAILABLE_PRODUCT_PARAMETER, tpnb).
-                log().all().
-                when().
-                get(SubsEndpointDefinition.SUBSTITUTES_PATH).
-                then().
-                log().all().
-                assertThat().
-                contentType(ContentType.JSON).
-                assertThat().body(JsonSchemaValidator.matchesJsonSchemaInClasspath(TREXSUBS_SUBSTITUTES_SCHEMA_JSON)).
-                assertThat().body("", equalTo(getExpectedFullJsonResponse())).
-                statusCode(HttpStatus.SC_OK);
-
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .queryParam(UNAVAILABLE_TPNB_PARAMETER, tpnb)
+                .log().all()
+                .when()
+                .get(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .assertThat().body(JsonSchemaValidator.matchesJsonSchemaInClasspath(TREXSUBS_SUBSTITUTES_SCHEMA_JSON))
+                .assertThat().body("", equalTo(getExpectedFullJsonResponse()))
+                .statusCode(SC_OK);
     }
 
     @Test
-    public void substitutes_endpoint_returns_subs_candidates_list_for_a_tpnb_that_starts_with_a_zero_and_has_subs() {
+    public void substitutes_endpoint_returns_substitutions_list_for_a_tpnb_that_starts_with_a_zero_and_has_subs() {
 
         String tpnb = "09999999";
         insertSubstitutionsInRedisForTpnb(tpnb);
-        given().
-                header(HttpHeaders.ACCEPT_ENCODING, MediaType.JSON_UTF_8.toString()).
-                queryParam(SubsHandler.TPNB_UNAVAILABLE_PRODUCT_PARAMETER, tpnb).
-                log().all().
-                when().
-                get(SubsEndpointDefinition.SUBSTITUTES_PATH).
-                then().
-                log().all().
-                assertThat().
-                contentType(ContentType.JSON).
-                assertThat().body(JsonSchemaValidator.matchesJsonSchemaInClasspath(TREXSUBS_SUBSTITUTES_SCHEMA_JSON)).
-                assertThat().body("", equalTo(getExpectedFullJsonResponse())).
-                statusCode(HttpStatus.SC_OK);
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .queryParam(UNAVAILABLE_TPNB_PARAMETER, tpnb)
+                .log().all()
+                .when()
+                .get(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .assertThat().body(JsonSchemaValidator.matchesJsonSchemaInClasspath(TREXSUBS_SUBSTITUTES_SCHEMA_JSON))
+                .assertThat().body("", equalTo(getExpectedFullJsonResponse()))
+                .statusCode(SC_OK);
 
     }
 
     @Test
     public void a_bad_request_status_code_and_custom_message_is_returned_if_no_tpnb_has_been_passed_as_parameter() {
-
-        given().
-                header(HttpHeaders.ACCEPT_ENCODING, MediaType.JSON_UTF_8.toString()).
-                log().all().
-                when().
-                get(SubsEndpointDefinition.SUBSTITUTES_PATH).
-                then().
-                log().all().
-                assertThat().
-                contentType(ContentType.JSON).
-                statusLine(containsString(SubsHandler.BAD_REQUEST_ERROR_MESSAGE)).
-                statusCode(HttpStatus.SC_BAD_REQUEST);
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .log().all()
+                .when()
+                .get(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .statusLine(containsString(BAD_REQUEST_ERROR_MESSAGE))
+                .statusCode(SC_BAD_REQUEST);
     }
 
     @Test
     public void a_bad_request_status_code_is_returned_and_custom_message_if_tpnb_has_been_passed_as_parameter_but_it_is_not_formatted_as_a_long_number() {
-
-        given().
-                header(HttpHeaders.ACCEPT_ENCODING, MediaType.JSON_UTF_8.toString()).
-                log().all().
-                when().
-                get(SubsEndpointDefinition.SUBSTITUTES_PATH).
-                then().
-                log().all().
-                assertThat().
-                contentType(ContentType.JSON).
-                statusLine(containsString(SubsHandler.BAD_REQUEST_ERROR_MESSAGE)).
-                statusCode(HttpStatus.SC_BAD_REQUEST);
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .queryParam(UNAVAILABLE_TPNB_PARAMETER, "abcdef12")
+                .log().all()
+                .when()
+                .get(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .statusLine(containsString(BAD_REQUEST_ERROR_MESSAGE))
+                .statusCode(SC_BAD_REQUEST);
     }
 
     @Test
     public void a_not_found_status_code_is_returned_if_the_endpoint_path_is_incorrect() {
-
-        given().
-                header(HttpHeaders.ACCEPT_ENCODING, MediaType.JSON_UTF_8.toString()).
-                log().all().
-                when().
-                get(SubsEndpointDefinition.SUBSTITUTES_PATH + "/wrongpath").
-                then().
-                log().all().
-                assertThat().
-                statusCode(HttpStatus.SC_NOT_FOUND);
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .log().all()
+                .when()
+                .get(SUBSTITUTES_PATH + "/wrongpath")
+                .then()
+                .log().all()
+                .assertThat()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
 
     }
 
+    @Test
+    public void substitutes_endpoint_should_return_substitutions_list_for_multiple_tpnbs_that_have_subs() {
+        String tpnbs = "64522828,80644752";
+        insertMultipleSubstitutionsInRedisForTpnb(tpnbs);
+
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .body(getJsonBodyForTpnbs(tpnbs))
+                .log().all()
+                .when()
+                .post(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .assertThat().body(JsonSchemaValidator.matchesJsonSchemaInClasspath(TREXSUBS_BULK_SUBSTITUTES_SCHEMA_JSON))
+                .assertThat().body("", equalTo(getExpectedFullJsonBulkResponse()))
+                .statusCode(SC_OK);
+    }
+
+    @Test
+    public void substitutes_endpoint_should_return_empty_list_for_any_tpnb_that_has_no_subs_when_miultiple_subs_requested() {
+        String nonPresentTpnb = "64522828,11122233";
+        insertMultipleSubstitutionsInRedisForTpnb(nonPresentTpnb);
+
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .body(getJsonBodyForTpnbs(nonPresentTpnb))
+                .log().all()
+                .when()
+                .post(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .assertThat().body(JsonSchemaValidator.matchesJsonSchemaInClasspath(TREXSUBS_BULK_SUBSTITUTES_SCHEMA_JSON))
+                .assertThat().body("substitutions.tpnb", hasItems("64522828", "11122233"))
+                .assertThat().body("substitutions[0].substitutes", is(readSubTpnsFromFileForGiveTpnb("64522828")))
+                .assertThat().body("substitutions[1].substitutes", is(Collections.emptyList()))
+                .statusCode(SC_OK);
+    }
+
+    @Test
+    public void a_bad_request_status_code_and_custom_message_should_return_if_no_tpnbs_have_been_passed_as_parameters_for_bulk_subs() {
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .body(getJsonBodyForTpnbs(""))
+                .log().all()
+                .when()
+                .post(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .statusLine(containsString(BAD_REQUEST_ERROR_MESSAGE))
+                .statusCode(SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void a_bad_request_status_code_and_custom_message_should_return_if_empty_body_has_been_passed(){
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .log().all()
+                .when()
+                .post(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .statusLine(containsString(BAD_REQUEST_EMPTY_BODY_MESSAGE))
+                .statusCode(SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void a_bad_request_status_code_and_custom_message_should_return_if_no_if_any_of_tpnbs_passed_are_not_formatted_as_a_long_number() {
+        insertMultipleSubstitutionsInRedisForTpnb("64522828");
+        given()
+                .header(ACCEPT_ENCODING, JSON_UTF_8.toString())
+                .body(getJsonBodyForTpnbs("64522828,abcdef12"))
+                .log().all()
+                .when()
+                .post(SUBSTITUTES_PATH)
+                .then()
+                .log().all()
+                .assertThat()
+                .contentType(JSON)
+                .statusLine(containsString(BAD_REQUEST_ERROR_MESSAGE))
+                .statusCode(SC_BAD_REQUEST);
+    }
+
+    private String getJsonBodyForTpnbs(String tpnbs) {
+        return new JsonObject().put(UNAVAILABLE_MULTIPLE_TPNBS_PARAMETER, new JsonArray(Lists.newArrayList(tpnbs.split(",")))).toString();
+    }
+
     private void insertSubstitutionsInRedisForTpnb(String tpnb) {
-        RedisClient client = getRedisClient(v);
+        RedisClient client = getRedisClient(vertx);
         //TODO read tpnbs subs from the response json file
-        client.rxSet(HttpRedisService.REDIS_KEYS_SUBS_NAMESPACE + tpnb, "11111111,2222222").subscribe();
+        client.rxSet(SubstitutesRedisService.REDIS_KEYS_SUBS_NAMESPACE + tpnb, "11111111,2222222").subscribe();
+    }
+
+    //only tpnbs from both json file and 'tpnbs' parameter go to redis
+    private void insertMultipleSubstitutionsInRedisForTpnb(String tpnbs) {
+        JsonObject jsonResponse = new JsonObject(
+                vertx.fileSystem().readFileBlocking(TEST_DATA_TREXSUBS_BULK_RESPONSE_JSON_FILE).getDelegate());
+        jsonResponse.getJsonArray("substitutions").forEach(obj -> {
+            JsonObject substitution = (JsonObject) obj;
+            String tpnb = substitution.getString("tpnb");
+            if (!tpnbs.contains(tpnb)) {
+                return;
+            }
+            getRedisClient(vertx).rxSet(SubstitutesRedisService.REDIS_KEYS_SUBS_NAMESPACE + tpnb,
+                    removeQuotesFromSubTpnbs(substitution.getJsonArray("substitutes"))).subscribe();
+        });
+    }
+
+    private String removeQuotesFromSubTpnbs(JsonArray jsonArray) {
+        return jsonArray.stream()
+                .map(object -> ((String) object).replace("\"", ""))
+                .map(String::trim)
+                .collect(Collectors.toList())
+                .toString().replace("[", "").replace("]", "");
     }
 
     private Map<Object, Object> getExpectedFullJsonResponse() {
         return new JsonPath(getFileFromClasspath(TEST_DATA_TREXSUBS_RESPONSE_JSON_FILE)).getMap("");
     }
 
+    private Object getExpectedFullJsonBulkResponse() {
+        return new JsonPath(getFileFromClasspath(TEST_DATA_TREXSUBS_BULK_RESPONSE_JSON_FILE)).getMap("");
+    }
+
     private File getFileFromClasspath(String pathToSchemaInClasspath) {
         return new File(Thread.currentThread().getContextClassLoader().getResource(pathToSchemaInClasspath).getFile());
-}
+    }
+
+    private List<String> readSubTpnsFromFileForGiveTpnb(String tpnb) {
+        return new JsonPath(getFileFromClasspath(TEST_DATA_TREXSUBS_BULK_RESPONSE_JSON_FILE))
+                .get("substitutions.find { it.tpnb == '" + tpnb + "'}.substitutes");
+    }
 }

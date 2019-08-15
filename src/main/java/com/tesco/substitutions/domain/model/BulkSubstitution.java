@@ -1,10 +1,10 @@
 package com.tesco.substitutions.domain.model;
 
+import java.util.List;
 import lombok.Value;
-import lombok.experimental.Accessors;
 
 @Value(staticConstructor = "of")
-@Accessors(fluent = true)
-public class UnavailableProduct {
+public class BulkSubstitution {
     private String tpnb;
+    private List<String> substitutes;
 }
