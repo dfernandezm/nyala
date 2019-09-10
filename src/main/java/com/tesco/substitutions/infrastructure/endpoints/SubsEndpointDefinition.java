@@ -19,7 +19,7 @@ public class SubsEndpointDefinition implements EndpointDefinition {
     @Override
     public EndpointDsl.Endpoint prepare() {
         return EndpointBuilder.forPath(SUBSTITUTES_PATH)
-                .GET()
+                .POST()
                 .then(this.subsHandler::substitutions);
     }
 }

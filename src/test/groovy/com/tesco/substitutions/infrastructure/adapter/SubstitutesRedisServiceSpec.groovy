@@ -1,66 +1,259 @@
 package com.tesco.substitutions.infrastructure.adapter
 
-import com.tesco.substitutions.domain.model.BulkSubstitution
+import com.google.common.collect.Lists
 import com.tesco.substitutions.domain.model.Substitution
 import com.tesco.substitutions.domain.model.UnavailableProduct
+import groovy.json.JsonSlurper
 import io.vertx.core.json.JsonArray
 import io.vertx.rxjava.redis.RedisClient
-import org.assertj.core.util.Lists
 import rx.Single
 import spock.lang.Specification
 
-import java.util.stream.Collectors
+import java.util.concurrent.TimeoutException
 
-class SubstitutesRedisServiceSpec extends Specification{
+class SubstitutesRedisServiceSpec extends Specification {
 
 
     private SubstitutesRedisService substitutesRedisService
+    private SubsNamespaceProvider subsNamespaceProvider
     private RedisResponseMapper redisResponseMapper
     private RedisClient redisClient
 
     def setup() {
         redisClient = Mock(RedisClient)
         redisResponseMapper = Mock(RedisResponseMapper)
-        substitutesRedisService = new SubstitutesRedisService(redisClient, redisResponseMapper)
+        subsNamespaceProvider = Mock(SubsNamespaceProvider)
+        substitutesRedisService = new SubstitutesRedisService(subsNamespaceProvider, redisClient, redisResponseMapper)
     }
 
-    def 'substitutions are returned for a tpnb of an unavailable product that has substitutions stored in redis, an empty list is returned if there are no substitutions stored in redis' () {
+    def 'substitutions are returned for a tpnb of an unavailable product that has substitutions stored in redis with a matching storeId'() {
+        def tpnbs = ['58396818']
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        List<String> unavailableTpnbs = tpnbs.collect { SubsNamespaceProvider.REDIS_KEYS_SUBS_IN_CFC_NAMESPACE + it }
+        def redisResponse = createRedisResponseFromTpnbs(tpnbs as String[])
 
-        given : 'Redis has tpnbs as keys, it provides substitutions per each tpnb'
-        def redisAsyncResponse = Single.just(redisSubstitutesResponse)
-        1 * redisClient.rxGet(SubstitutesRedisService.REDIS_KEYS_SUBS_NAMESPACE + tpnb.toString()) >> redisAsyncResponse
-        1 * redisResponseMapper.mapSingleSubstitutionsResponse(redisAsyncResponse, _) >> Single.just(new JsonArray("[$redisSubstitutesResponse]"))
+        def storeId = '1111'
+        given: 'Redis has tpnbs as keys, it provides substitutions per each tpnb'
+        def redisAsyncResponse = Single.just(redisResponse)
+        def responseMapperResponse = new JsonArray(redisResponse.toString())
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(storeId, unavailableProducts) >> Single.just(unavailableTpnbs)
+        1 * redisClient.rxMgetMany(unavailableTpnbs) >> redisAsyncResponse
+        1 * redisResponseMapper.mapSubstitutionsResponse(redisResponse) >> responseMapperResponse
 
         when: 'We request a substitution for a tpnb to SubstitutesRedisService'
-        def result = substitutesRedisService.getSubstitutionsFor(UnavailableProduct.of(tpnb)).toBlocking().value()
+        def result = substitutesRedisService.getSubstitutionsFor(storeId, unavailableProducts).toBlocking().value()
 
         then: 'we should receive the expected result'
-        result.equals(expectedSubstitutionsList)
-
-        where: 'if Redis has substitutes, that list of tpnbs substitutes should be returned. If no substitutions were found an empty list is returned'
-
-        tpnb                          ||      redisSubstitutesResponse     ||     expectedSubstitutionsList
-        '58396818'                    ||         '11111111,22222222'       ||     Lists.newArrayList(Substitution.of('11111111'),Substitution.of('22222222'))
-        '98396818'                    ||          null                     ||     Collections.emptyList()
-        '98396819'                    ||          ''                       ||     Collections.emptyList()
+        result.equals(createExpectedResult(tpnbs as String[]))
     }
 
-    def 'substitutions for multiple unavailable products are returned if stored in redis, an empty list is returned otherwise' (){
-        given: 'Redis has tpnbs as keys'
-        def redisAsyncResponse = Single.just(redisSubstitutesResponse)
-        1 * redisClient.rxMgetMany(Arrays.stream(tpnbs.split(',')).map({ tpnb -> 'originalTpn_' + tpnb }).collect(Collectors.toList())) >> redisAsyncResponse
-        1 * redisResponseMapper.mapBulkSubstitutionsResponse(redisAsyncResponse, _) >> Single.just(redisSubstitutesResponse)
+    def 'substitutions are returned for a tpnb of an unavailable product that has substitutions stored in redis with no storeid'() {
+        def tpnbs = ['55555555']
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        List<String> unavailableTpnbs = tpnbs.collect { SubsNamespaceProvider.REDIS_KEYS_SUBS_NAMESPACE + it }
+        def redisResponse = createRedisResponseFromTpnbs(tpnbs as String[])
 
-        when: 'We request a substitutions for multiple tpnbs'
-        def result = substitutesRedisService.getBulkSubstitutionsFor(Arrays.stream(tpnbs.split(',')).map({ tpnb -> UnavailableProduct.of(tpnb) }).collect(Collectors.toList())).toBlocking().value()
+        given: 'Redis has tpnbs as keys, it provides substitutions per each tpnb'
+        def redisAsyncResponse = Single.just(redisResponse)
+        def responseMapperResponse = new JsonArray(redisResponse.toString())
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(unavailableProducts) >> Single.just(unavailableTpnbs)
+        1 * redisClient.rxMgetMany(unavailableTpnbs) >> redisAsyncResponse
+        1 * redisResponseMapper.mapSubstitutionsResponse(redisResponse) >> responseMapperResponse
+
+        when: 'We request a substitution for a tpnb to SubstitutesRedisService'
+        def result = substitutesRedisService.getSubstitutionsFor(unavailableProducts).toBlocking().value()
 
         then: 'we should receive the expected result'
-        result.equals(expectedSubstitutionsList)
+        result.equals(createExpectedResult(tpnbs as String[]))
+    }
 
-        where: 'if Redis has substitutes, that list of lists of tpnb substitutes should be returned. If no substitutions were found an empty list is returned'
+    def 'should return substitutions for tpnbs of unavailable products that have substitutions in redis with storeid'() {
+        def tpnbs = ['58396818', '52575426']
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        List<String> unavailableTpnbs = tpnbs.collect { SubsNamespaceProvider.REDIS_KEYS_SUBS_IN_CFC_NAMESPACE + it }
+        def redisResponse = createRedisResponseFromTpnbs(tpnbs as String[])
 
-        tpnbs                || redisSubstitutesResponse                                             || expectedSubstitutionsList
-        '64522828,80644752'  || new JsonArray('[\"56906502,71166006\",\"78470769,80167412\"]')  || Lists.newArrayList(BulkSubstitution.of('64522828', Lists.newArrayList('56906502', '71166006')), BulkSubstitution.of('80644752', Lists.newArrayList('78470769', '80167412')))
-        '79731926,84802277'  || new JsonArray(Lists.newArrayList(null, null))              || Lists.newArrayList(BulkSubstitution.of('79731926', Collections.emptyList()), BulkSubstitution.of('84802277', Collections.emptyList()))
+        def storeId = '1111'
+        given: 'Redis has tpnbs as keys, it provides substitutions per each tpnb'
+        def redisAsyncResponse = Single.just(redisResponse)
+        def responseMapperResponse = new JsonArray(redisResponse.toString())
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(storeId, unavailableProducts) >> Single.just(unavailableTpnbs)
+
+        1 * redisClient.rxMgetMany(unavailableTpnbs) >> redisAsyncResponse
+        1 * redisResponseMapper.mapSubstitutionsResponse(redisResponse) >> responseMapperResponse
+
+        when: 'We request a substitution for tpnbs to SubstitutesRedisService'
+        def result = substitutesRedisService.getSubstitutionsFor(storeId, unavailableProducts).toBlocking().value()
+
+        then: 'we should receive the expected result'
+        result.equals(createExpectedResult(tpnbs as String[]))
+    }
+
+    def 'should return substitutions for tpnbs of unavailable products that have substitutions in redis with no storeid'() {
+        def tpnbs = ['55555555', '66666666']
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        List<String> unavailableTpnbs = tpnbs.collect { SubsNamespaceProvider.REDIS_KEYS_SUBS_NAMESPACE + it }
+        def redisResponse = createRedisResponseFromTpnbs(tpnbs as String[])
+
+        given: 'Redis has tpnbs as keys, it provides substitutions per each tpnb'
+        def redisAsyncResponse = Single.just(redisResponse)
+        def responseMapperResponse = new JsonArray(redisResponse.toString())
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(unavailableProducts) >> Single.just(unavailableTpnbs)
+
+        1 * redisClient.rxMgetMany(unavailableTpnbs) >> redisAsyncResponse
+        1 * redisResponseMapper.mapSubstitutionsResponse(redisResponse) >> responseMapperResponse
+
+        when: 'We request a substitution for tpnbs to SubstitutesRedisService'
+        def result = substitutesRedisService.getSubstitutionsFor(unavailableProducts).toBlocking().value()
+
+        then: 'we should receive the expected result'
+        result.equals(createExpectedResult(tpnbs as String[]))
+    }
+
+    def 'should return empty list if no substitutions stored in redis'() {
+        def tpnbs = ['58396818', '52575426']
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        List<String> unavailableTpnbs = tpnbs.collect { SubsNamespaceProvider.REDIS_KEYS_SUBS_IN_CFC_NAMESPACE + it }
+        def redisResponse = new JsonArray([null, null])
+
+        def storeId = '1111'
+        given: 'Redis has tpnbs as keys, it provides substitutions per each tpnb'
+        def redisAsyncResponse = Single.just(redisResponse)
+        def responseMapperResponse = new JsonArray("[[],[]]")
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(storeId, unavailableProducts) >> Single.just(unavailableTpnbs)
+        1 * redisClient.rxMgetMany(unavailableTpnbs) >> redisAsyncResponse
+        1 * redisResponseMapper.mapSubstitutionsResponse(redisResponse) >> responseMapperResponse
+
+        when: 'We request a substitution for tpnbs to SubstitutesRedisService'
+        def result = substitutesRedisService.getSubstitutionsFor(storeId, unavailableProducts).toBlocking().value()
+
+        then: 'we should receive the expected result'
+        result.size().equals(2)
+        result.every { sub -> sub.getSubstitutes().equals([]) }
+    }
+
+    def 'should return empty list if no substitutions stored in redis with no storeid given'() {
+        def tpnbs = ['58396818', '52575426']
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        List<String> unavailableTpnbs = tpnbs.collect { SubsNamespaceProvider.REDIS_KEYS_SUBS_NAMESPACE + it }
+        def redisResponse = new JsonArray([null, null])
+
+        given: 'Redis has tpnbs as keys, it provides substitutions per each tpnb'
+        def redisAsyncResponse = Single.just(redisResponse)
+        def responseMapperResponse = new JsonArray("[[],[]]")
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(unavailableProducts) >> Single.just(unavailableTpnbs)
+        1 * redisClient.rxMgetMany(unavailableTpnbs) >> redisAsyncResponse
+        1 * redisResponseMapper.mapSubstitutionsResponse(redisResponse) >> responseMapperResponse
+
+        when: 'We request a substitution for tpnbs to SubstitutesRedisService'
+        def result = substitutesRedisService.getSubstitutionsFor(unavailableProducts).toBlocking().value()
+
+        then: 'we should receive the expected result'
+        result.size().equals(2)
+        result.every { sub -> sub.getSubstitutes().equals([]) }
+    }
+
+    @spock.lang.Ignore
+    def 'should throw exception if redis client times out'() {
+        // Need to work out how to return the correct type of response to simulate a timeout in redis
+        given:
+        def tpnbs = ['58396818', '52575426']
+        def storeId = '1111'
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        List<String> unavailableTpnbs = tpnbs.collect { SubsNamespaceProvider.REDIS_KEYS_SUBS_IN_CFC_NAMESPACE + it }
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(storeId, unavailableProducts) >> Single.just(unavailableTpnbs)
+        1 * redisClient.rxMgetMany(_) >> Single.error(new TimeoutException())
+
+        when:
+        substitutesRedisService.getSubstitutionsFor(storeId, unavailableProducts).toBlocking().value()
+
+        then:
+        thrown TimeoutException
+    }
+
+    def 'should throw exception if namespace mapping fails with exception'() {
+        given:
+        def tpnbs = ['58396818', '52575426']
+        def storeId = '1111'
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(storeId, unavailableProducts) >> Single.error(new RuntimeException("test exception"))
+
+        when:
+        substitutesRedisService.getSubstitutionsFor(storeId, unavailableProducts).toBlocking().value()
+
+        then:
+        RuntimeException runtimeException = thrown()
+        runtimeException.message.equals('test exception')
+    }
+
+    def 'should throw exception if namespace mapping fails with exception when no storeid provided'() {
+        given:
+        def tpnbs = ['58396818', '52575426']
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(unavailableProducts) >> Single.error(new RuntimeException("test exception"))
+
+        when:
+        substitutesRedisService.getSubstitutionsFor(unavailableProducts).toBlocking().value()
+
+        then:
+        RuntimeException runtimeException = thrown()
+        runtimeException.message.equals('test exception')
+    }
+
+    def 'should throw exception if redis client fails with exception'() {
+        given:
+        def tpnbs = ['58396818', '52575426']
+        def storeId = '1111'
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        List<String> unavailableTpnbs = tpnbs.collect { SubsNamespaceProvider.REDIS_KEYS_SUBS_IN_CFC_NAMESPACE + it }
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(storeId, unavailableProducts) >> Single.just(unavailableTpnbs)
+        1 * redisClient.rxMgetMany(_) >> Single.error(new RuntimeException('another test exception'))
+
+        when:
+        substitutesRedisService.getSubstitutionsFor(storeId, unavailableProducts).toBlocking().value()
+
+        then:
+        RuntimeException runtimeException = thrown()
+        runtimeException.message.equals('another test exception')
+    }
+
+    def 'should throw exception if redis client fails with exception when no storeid provided'() {
+        given:
+        def tpnbs = ['58396818', '52575426']
+        List<UnavailableProduct> unavailableProducts = tpnbs.collect { UnavailableProduct.of(it) }
+        List<String> unavailableTpnbs = tpnbs.collect { SubsNamespaceProvider.REDIS_KEYS_SUBS_IN_CFC_NAMESPACE + it }
+        1 * subsNamespaceProvider.getRedisNamespaceForTpnbs(unavailableProducts) >> Single.just(unavailableTpnbs)
+        1 * redisClient.rxMgetMany(_) >> Single.error(new RuntimeException('another test exception'))
+
+        when:
+        substitutesRedisService.getSubstitutionsFor(unavailableProducts).toBlocking().value()
+
+        then:
+        RuntimeException runtimeException = thrown()
+        runtimeException.message.equals('another test exception')
+    }
+
+
+    def createRedisResponseFromTpnbs(String[] tpnbs) {
+        def testData = readRedisResponseFromFile()
+        JsonArray redisResponse = new JsonArray();
+
+        tpnbs.each {
+            redisResponse.add(testData[it])
+        }
+        redisResponse
+    }
+
+    def readRedisResponseFromFile() {
+        def slurper = new JsonSlurper()
+        def data = slurper.parse(new File('src/test/resources/testData/redisResponse.json'))
+        println data
+        data
+    }
+
+    def createExpectedResult(String[] tpnbs) {
+        tpnbs.collect {
+            Substitution.of(it, Lists.newArrayList('11111111', '22222222'))
+        }
     }
 }

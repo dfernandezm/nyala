@@ -5,13 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class SubTpnbValidator {
+public class TpnbValidator {
 
-    boolean validateTpnb(final String tpnb) {
+    boolean isValidTpnb(final String tpnb) {
         return StringUtils.isNotEmpty(tpnb) && isWellFormatted(tpnb);
     }
 
-    boolean isWellFormatted(String tpnb) {
+    boolean areValidTpnbs(List<String> tpnbs){
+        return !tpnbs.isEmpty() && tpnbs.stream().allMatch(this::isValidTpnb);
+    }
+
+    private boolean isWellFormatted(String tpnb) {
         try {
             Long.parseLong(tpnb);
             return true;
@@ -19,9 +23,5 @@ public class SubTpnbValidator {
             log.info("tpnb is not well formatted {} ", tpnb);
             return false;
         }
-    }
-
-    boolean validateTpnbs(List<String> tpnbs){
-        return tpnbs.stream().allMatch(this::validateTpnb);
     }
 }

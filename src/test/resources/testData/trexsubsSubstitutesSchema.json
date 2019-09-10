@@ -17,7 +17,8 @@
         "type": "object",
         "title": "The Items Schema",
         "required": [
-          "tpnb"
+          "tpnb",
+          "substitutes"
         ],
         "properties": {
           "tpnb": {
@@ -26,12 +27,38 @@
             "title": "The Tpnb Schema",
             "default": "",
             "examples": [
-              "11111111"
+              "64522828"
             ],
             "pattern": "^(.*)$"
+          },
+          "substitutes": {
+            "$id": "#/properties/substitutions/items/properties/substitutes",
+            "type": "array",
+            "title": "The Substitutes Schema",
+            "items": {
+              "$id": "#/properties/substitutions/items/properties/substitutes/items",
+              "type": "string",
+              "title": "The Items Schema",
+              "default": "",
+              "examples": [
+                "56906502",
+                "71166006",
+                "80401162",
+                "80568675",
+                "60227361",
+                "73545851",
+                "73545868",
+                "85718485",
+                "82535515",
+                "60227614"
+              ],
+              "pattern": "^(.*)$"
+            }
           }
         }
       }
     }
   }
 }
+
+

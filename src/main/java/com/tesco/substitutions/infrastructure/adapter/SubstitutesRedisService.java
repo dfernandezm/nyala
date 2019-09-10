@@ -1,83 +1,141 @@
 package com.tesco.substitutions.infrastructure.adapter;
 
-import com.google.common.collect.Lists;
-import com.tesco.substitutions.domain.model.BulkSubstitution;
+import com.tesco.personalisation.commons.logging.LoggingUtils;
 import com.tesco.substitutions.domain.model.Substitution;
 import com.tesco.substitutions.domain.model.UnavailableProduct;
 import com.tesco.substitutions.domain.service.SubstitutionsService;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava.redis.RedisClient;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import rx.Single;
+import rx.exceptions.Exceptions;
 
 @Slf4j
 public class SubstitutesRedisService implements SubstitutionsService {
 
-    public static final String REDIS_KEYS_SUBS_NAMESPACE = "originalTpn_";
-    private RedisClient redisClient;
-    private RedisResponseMapper redisResponseMapper;
+    static final Long REDIS_FIND_TIMEOUT = 3000L;
+
+    private final SubsNamespaceProvider subsNamespaceProvider;
+    private final RedisClient redisClient;
+    private final RedisResponseMapper redisResponseMapper;
 
     @Inject
-    public SubstitutesRedisService(@Named("redisClient") final RedisClient redisClient, RedisResponseMapper redisResponseMapper) {
+    public SubstitutesRedisService(final SubsNamespaceProvider subsNamespaceProvider,
+            @Named("redisClient") final RedisClient redisClient, final RedisResponseMapper redisResponseMapper) {
+        this.subsNamespaceProvider = subsNamespaceProvider;
         this.redisClient = redisClient;
         this.redisResponseMapper = redisResponseMapper;
     }
 
-    @Override
-    public Single<List<Substitution>> getSubstitutionsFor(UnavailableProduct unavailableProduct) {
-        return redisResponseMapper.mapSingleSubstitutionsResponse(redisClient.rxGet(addNamespaceToTpnb(unavailableProduct.tpnb())), System.currentTimeMillis())
-                .map(this::asSubstitutions);
-    }
-
-    @Override
-    public Single<List<BulkSubstitution>> getBulkSubstitutionsFor(List<UnavailableProduct> unavailableProducts) {
-        List<String> unavailableTpnbs = unavailableProducts.stream()
-                .map(UnavailableProduct::tpnb)
-                .map(this::addNamespaceToTpnb)
-                .collect(Collectors.toList());
-
-        return redisResponseMapper.mapBulkSubstitutionsResponse(redisClient.rxMgetMany(unavailableTpnbs), System.currentTimeMillis())
-                .map(jsonArray -> asBulkSubstitutions(jsonArray, unavailableProducts));
-    }
-
-    private String addNamespaceToTpnb(String tpnb) {
-        return REDIS_KEYS_SUBS_NAMESPACE + tpnb;
-    }
-
-    private List<Substitution> asSubstitutions(final JsonArray jsonArray) {
-        return jsonArray
-                .stream()
-                .filter(Objects::nonNull)
-                .map(subtpnb -> Substitution.of(subtpnb.toString()))
-                .collect(Collectors.toList());
-    }
-
-    private List<BulkSubstitution> asBulkSubstitutions(final JsonArray jsonArray, List<UnavailableProduct> unavailableProducts){
-        log.debug(jsonArray.encodePrettily());
-        if (jsonArray.size() != unavailableProducts.size()) {
-            log.info("The number of substitutions is different from that of unavailable products list, probably some substitutions were not found");
+    private static void checkForMissingResponses(final JsonArray dataFromRedis, final List<UnavailableProduct> unavailableProducts) {
+        if (dataFromRedis.size() != unavailableProducts.size()) {
+            log.warn("The number of results from Redis does not match the requested number");
+            throw new RuntimeException("Incorrect number of results from Redis");
         }
-        List<BulkSubstitution> bulkSubstitutions = IntStream.range(0, jsonArray.size())
-                .mapToObj(i -> createBulkSubstitution(i, unavailableProducts, jsonArray))
+    }
+
+    private static Stream<SubstitutionCandidate> getSubstitutionCandidates(final JsonArray redisResponseChunk) {
+        return redisResponseChunk
+                .stream()
+                .map(obj -> Json.decodeValue(obj.toString(), SubstitutionCandidate.class));
+    }
+
+    private static boolean isSubstitutionCandidateInStore(final SubstitutionCandidate substitutionCandidate, final String storeId) {
+        if (storeId != null && substitutionCandidate.getStoreIds() != null) {
+            return substitutionCandidate.getStoreIds().contains(storeId);
+        }
+        return true;
+    }
+
+    private static <T> Single<T> logError(final Throwable error) {
+        if (error instanceof TimeoutException) {
+            log.warn("Timeout connecting to Redis");
+        }
+        throw Exceptions.propagate(error);
+    }
+
+    private static List<String> getSubstitutionTpnbList(final JsonArray redisResponseChunk) {
+        return SubstitutesRedisService.getSubstitutionCandidates(redisResponseChunk)
+                .map(SubstitutionCandidate::getSubTpn)
+                .collect(Collectors.toList());
+    }
+
+    private static List<String> filterSubTpnbsByStoreId(final JsonArray redisResponseChunk, final String storeId) {
+        return SubstitutesRedisService.getSubstitutionCandidates(redisResponseChunk)
+                .filter(sc -> SubstitutesRedisService.isSubstitutionCandidateInStore(sc, storeId))
+                .map(SubstitutionCandidate::getSubTpn)
+                .collect(Collectors.toList());
+    }
+
+    private static Substitution toSubstitution(final UnavailableProduct unavailableProduct, final String storeId,
+            final JsonArray redisResponseChunk) {
+        return Substitution.of(unavailableProduct.tpnb(), SubstitutesRedisService.filterSubTpnbsByStoreId(redisResponseChunk, storeId));
+    }
+
+    private static Substitution toSubstitution(final UnavailableProduct unavailableProduct, final JsonArray redisResponseChunk) {
+        return Substitution.of(unavailableProduct.tpnb(), SubstitutesRedisService.getSubstitutionTpnbList(redisResponseChunk));
+    }
+
+    private static List<Substitution> asSubstitutions(final JsonArray dataFromRedis, final List<UnavailableProduct> unavailableProducts,
+            final String storeId) {
+        log.info("found these substitution {} for unavailable products {} and storeId {}", dataFromRedis.encode(), unavailableProducts,
+                storeId);
+        SubstitutesRedisService.checkForMissingResponses(dataFromRedis, unavailableProducts);
+
+        final List<Substitution> result = IntStream.range(0, dataFromRedis.size())
+                .mapToObj(i -> SubstitutesRedisService.toSubstitution(unavailableProducts.get(i), storeId, dataFromRedis.getJsonArray(i)))
                 .collect(Collectors.toList());
 
-        log.debug(bulkSubstitutions.toString());
-        return bulkSubstitutions;
+        log.info("Returning substitutions {} for unavailable products {} with store id {}", result, unavailableProducts, storeId);
+        return result;
     }
 
-    private BulkSubstitution createBulkSubstitution(int index, List<UnavailableProduct> unavailableProducts, JsonArray redisResponse){
-        return BulkSubstitution.of(unavailableProducts.get(index).tpnb(), getSubTpnbsFromRedisResponse(redisResponse, index));
+    private static List<Substitution> asSubstitutions(final JsonArray dataFromRedis, final List<UnavailableProduct> unavailableProducts) {
+        log.info("found these substitution {} for unavailable products {}", dataFromRedis.encode(), unavailableProducts);
+        SubstitutesRedisService.checkForMissingResponses(dataFromRedis, unavailableProducts);
+
+        final List<Substitution> result = IntStream.range(0, dataFromRedis.size())
+                .mapToObj(i -> SubstitutesRedisService.toSubstitution(unavailableProducts.get(i), dataFromRedis.getJsonArray(i)))
+                .collect(Collectors.toList());
+
+        log.info("Returning substitutions {} for unavailable products {}", result, unavailableProducts);
+        return result;
     }
 
-    private List<String> getSubTpnbsFromRedisResponse(JsonArray redisResponse, int index){
-        if (redisResponse.getString(index) == null) return Collections.emptyList();
-        return Lists.newArrayList(redisResponse.getString(index).split(",\\s*"));
+    @Override
+    public Single<List<Substitution>> getSubstitutionsFor(final String storeId, final List<UnavailableProduct> unavailableProducts) {
+        final Single<List<Substitution>> listSingle = this.subsNamespaceProvider
+                .getRedisNamespaceForTpnbs(storeId, unavailableProducts)
+                .flatMap(this::getSubstitutionsFromRedis)
+                .map(jsonArray -> SubstitutesRedisService.asSubstitutions(jsonArray, unavailableProducts, storeId))
+                .onErrorResumeNext(SubstitutesRedisService::logError);
+        return LoggingUtils
+                .logTiming(listSingle, "Getting Substitution for unavailable products " + unavailableProducts + " and storeId " + storeId);
+    }
+
+    @Override
+    public Single<List<Substitution>> getSubstitutionsFor(final List<UnavailableProduct> unavailableProducts) {
+        final Single<List<Substitution>> listSingle = this.subsNamespaceProvider
+                .getRedisNamespaceForTpnbs(unavailableProducts)
+                .flatMap(this::getSubstitutionsFromRedis)
+                .map(jsonArray -> SubstitutesRedisService.asSubstitutions(jsonArray, unavailableProducts))
+                .onErrorResumeNext(SubstitutesRedisService::logError);
+        return LoggingUtils.logTiming(listSingle, "Getting Substitution for unavailable products " + unavailableProducts);
+    }
+
+    private Single<JsonArray> getSubstitutionsFromRedis(final List<String> redisKeys) {
+        log.info("Getting substitutions from Redis for {}", redisKeys);
+        return this.redisClient.rxMgetMany(redisKeys)
+                .timeout(REDIS_FIND_TIMEOUT, TimeUnit.MILLISECONDS)
+                .map(response -> this.redisResponseMapper.mapSubstitutionsResponse(response));
     }
 }
