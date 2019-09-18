@@ -38,6 +38,7 @@ public class TestHelper {
     private static final String CONFIG_JSON_KEY = "config";
     private static final String REDIS_CONFIGURATION_KEY = "redisConfiguration";
     private static final String TEST_DATA_TREXSUBS_CFC_RESPONSE_JSON_FILE = "testData/trexsubsResponseCfc.json";
+    private static final String TEST_DATA_SUBS_DATE_PREFIX_VALUE = "18_09_2019";
 
     private static Vertx vertx;
 
@@ -91,6 +92,7 @@ public class TestHelper {
     }
     private static void loadTestDataToRedis() {
         insertCfcStoreId();
+        insertSubsDatePrefix();
         insertMultipleSubstitutionsInRedisForTpnb();
         insertMultipleSubstitutionsInRedisForTpnbInCFCStores();
     }
@@ -106,8 +108,8 @@ public class TestHelper {
                 jsonObject.put("subTpn", subTpn.toString());
                 return jsonObject;
             }).collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
-
-            getRedisClient(vertx).rxSet(REDIS_KEYS_SUBS_NAMESPACE+ tpnb, subsArray.toString()).subscribe();
+            String redisKey = REDIS_KEYS_SUBS_NAMESPACE + TEST_DATA_SUBS_DATE_PREFIX_VALUE + "_" + tpnb;
+            getRedisClient(vertx).rxSet(redisKey, subsArray.toString()).subscribe();
         });
     }
 
@@ -123,13 +125,16 @@ public class TestHelper {
                         Collectors.toList())));
                 return jsonObject;
             }).collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
-
-            getRedisClient(vertx).rxSet(REDIS_KEYS_SUBS_IN_CFC_NAMESPACE + tpnb, subsArray.toString()).subscribe();
+            String redisKey = REDIS_KEYS_SUBS_IN_CFC_NAMESPACE + TEST_DATA_SUBS_DATE_PREFIX_VALUE + "_" + tpnb;
+            getRedisClient(vertx).rxSet(redisKey, subsArray.toString()).subscribe();
         });
     }
 
     private static void insertCfcStoreId() {
         getRedisClient(vertx).rxSet(SubsNamespaceProvider.REDIS_KEYS_CFC_STORE_IDS, CFC_STORE_ID + ",1234").subscribe();
+    }
+    private static void insertSubsDatePrefix() {
+        getRedisClient(vertx).rxSet(SubsNamespaceProvider.REDIS_KEYS_SUBS_DATE_PREFIX, TEST_DATA_SUBS_DATE_PREFIX_VALUE).subscribe();
     }
 
     private static RedisClient getRedisClient(Vertx vertx) {
