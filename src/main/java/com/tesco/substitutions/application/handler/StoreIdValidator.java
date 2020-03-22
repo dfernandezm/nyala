@@ -1,9 +1,11 @@
 package com.tesco.substitutions.application.handler;
 
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Singleton;
+
 @Slf4j
+@Singleton
 public class StoreIdValidator {
 
     public boolean isValidStoreId(final String storeId){

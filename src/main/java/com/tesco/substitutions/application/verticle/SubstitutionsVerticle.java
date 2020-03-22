@@ -1,28 +1,31 @@
 package com.tesco.substitutions.application.verticle;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.tesco.personalisation.commons.logging.LoggerHandler;
 import com.tesco.personalisation.commons.routing.RouterFactory;
 import com.tesco.personalisation.commons.shutdown.ShutdownUtils;
-import com.tesco.substitutions.infrastructure.module.SubstitutionsBinder;
+import com.tesco.substitutions.infrastructure.module.SubstitutionConfig;
+import io.micronaut.context.BeanContext;
+import io.micronaut.inject.qualifiers.Qualifiers;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.rxjava.core.AbstractVerticle;
 import io.vertx.rxjava.core.http.HttpServer;
 import io.vertx.rxjava.ext.web.Router;
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SubstitutionsVerticle extends AbstractVerticle {
 
-    private Injector injector;
+    private BeanContext beanContext;
 
     @Override
     public void start(final Future<Void> startFuture) {
-        this.getOrCreateInjector().injectMembers(this);
+        //TODO: This should probably be in the constructor
+        this.beanContext = BeanContext.run();
+        this.beanContext.registerSingleton(new SubstitutionConfig(this.vertx), true);
         this.startHttpServer(startFuture);
     }
 
@@ -36,13 +39,6 @@ public class SubstitutionsVerticle extends AbstractVerticle {
             log.error("Server unable to start: {}", error.getMessage());
             startFuture.fail(error.getMessage());
         });
-    }
-
-    private Injector getOrCreateInjector() {
-        if (this.injector == null) {
-            this.injector = Guice.createInjector(new SubstitutionsBinder(this.vertx));
-        }
-        return this.injector;
     }
 
     private HttpServer httpServer() {
@@ -65,9 +61,8 @@ public class SubstitutionsVerticle extends AbstractVerticle {
 
     private Router setupRouter() {
         // Inline injection of routerFactory and endpoints setup
-        final RouterFactory routerFactory = this.getOrCreateInjector().getInstance(RouterFactory.class);
+        RouterFactory routerFactory = beanContext.getBean(RouterFactory.class,Qualifiers.byName("routerFactoryMine"));
         routerFactory.useLoggerHandler(new LoggerHandler());
         return routerFactory.globalRouter(this.vertx);
     }
-
 }

@@ -7,16 +7,18 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.core.http.HttpServerResponse;
 import io.vertx.rxjava.ext.web.RoutingContext;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import rx.functions.Action1;
 
+import javax.inject.Singleton;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 @Slf4j
+@Singleton
 public class SubsHandler {
 
     public static final String UNAVAILABLE_TPNB_PARAMETER = "unavailableTpnbs";
@@ -30,9 +32,8 @@ public class SubsHandler {
     private final TpnbValidator tpnbValidator;
     private final StoreIdValidator storeIdValidator;
 
-    @Inject
     public SubsHandler(final SubstitutionsService substitutionsService,
-            final TpnbValidator tpnbValidator, final StoreIdValidator storeIdValidator) {
+                       final TpnbValidator tpnbValidator, final StoreIdValidator storeIdValidator) {
         this.substitutionsService = substitutionsService;
         this.tpnbValidator = tpnbValidator;
         this.storeIdValidator = storeIdValidator;
@@ -55,7 +56,8 @@ public class SubsHandler {
         }
     }
 
-    private void returnInvalidParametersResponse(final String UID, final HttpServerResponse response, final JsonObject requestJson) {
+    private void returnInvalidParametersResponse(final String UID, final HttpServerResponse response,
+                                                 final JsonObject requestJson) {
         log.info("{}: Bad request received, parameters could not be validated: {}", UID, requestJson);
         response.setStatusCode(HttpStatus.SC_BAD_REQUEST).setStatusMessage(BAD_REQUEST_ERROR_MESSAGE).end();
     }
@@ -72,7 +74,8 @@ public class SubsHandler {
         }
     }
 
-    private void handleRequestWithStoreId(final HttpServerResponse response, final JsonObject requestJson, final List unavailableTpnbs,
+    private void handleRequestWithStoreId(final HttpServerResponse response, final JsonObject requestJson,
+                                          final List unavailableTpnbs,
             final String uid) {
         final String storeId = requestJson.getString(STORE_ID_PARAMETER);
         if (this.requestParametersAreValid(storeId, unavailableTpnbs)) {
@@ -83,7 +86,8 @@ public class SubsHandler {
         }
     }
 
-    private void handleRequestWithoutStoreId(final HttpServerResponse response, final JsonObject requestJson, final List unavailableTpnbs,
+    private void handleRequestWithoutStoreId(final HttpServerResponse response, final JsonObject requestJson,
+                                             final List unavailableTpnbs,
             final String uid) {
         if (this.areValidTpnbs(unavailableTpnbs)) {
             log.info("{}: No StoreId provided, asking for default substitutions for these unavailable products {} ", uid, unavailableTpnbs);

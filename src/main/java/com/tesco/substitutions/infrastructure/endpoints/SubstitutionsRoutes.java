@@ -5,9 +5,8 @@ import com.tesco.personalisation.commons.routing.RoutesDefinition;
 import io.vavr.collection.Array;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.ext.web.Router;
+
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Named;
 
 public class SubstitutionsRoutes implements RoutesDefinition {
 
@@ -15,8 +14,7 @@ public class SubstitutionsRoutes implements RoutesDefinition {
 
     private final List<EndpointDefinition> endpointDefinitions;
 
-    @Inject
-    public SubstitutionsRoutes(@Named("substitutionsEndpoints") final List<EndpointDefinition> endpointDefinitions) {
+    public SubstitutionsRoutes(final List<EndpointDefinition> endpointDefinitions) {
         this.endpointDefinitions = endpointDefinitions;
     }
 

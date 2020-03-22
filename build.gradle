@@ -8,6 +8,14 @@ buildscript {
     }
 }
 
+plugins {
+    id "io.spring.dependency-management" version "1.0.6.RELEASE"
+    id "java"
+    id "net.ltgt.apt-idea" version "0.21"
+    id "com.github.johnrengelman.shadow" version "4.0.2"
+    id "application"
+}
+
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'maven'

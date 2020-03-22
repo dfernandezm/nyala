@@ -7,19 +7,20 @@ import com.tesco.substitutions.domain.service.SubstitutionsService;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava.redis.RedisClient;
+import lombok.extern.slf4j.Slf4j;
+import rx.Single;
+import rx.exceptions.Exceptions;
+
+import javax.inject.Singleton;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import javax.inject.Inject;
-import javax.inject.Named;
-import lombok.extern.slf4j.Slf4j;
-import rx.Single;
-import rx.exceptions.Exceptions;
 
 @Slf4j
+@Singleton
 public class SubstitutesRedisService implements SubstitutionsService {
 
     static final Long REDIS_FIND_TIMEOUT = 3000L;
@@ -28,9 +29,8 @@ public class SubstitutesRedisService implements SubstitutionsService {
     private final RedisClient redisClient;
     private final RedisResponseMapper redisResponseMapper;
 
-    @Inject
-    public SubstitutesRedisService(final SubsNamespaceProvider subsNamespaceProvider,
-            @Named("redisClient") final RedisClient redisClient, final RedisResponseMapper redisResponseMapper) {
+    public SubstitutesRedisService(final SubsNamespaceProvider subsNamespaceProvider, final RedisClient redisClient,
+                                   final RedisResponseMapper redisResponseMapper) {
         this.subsNamespaceProvider = subsNamespaceProvider;
         this.redisClient = redisClient;
         this.redisResponseMapper = redisResponseMapper;

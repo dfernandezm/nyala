@@ -6,7 +6,10 @@ import io.vertx.rxjava.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 
+import javax.inject.Singleton;
+
 @Slf4j
+@Singleton
 public class StatusEndpointHandler {
 
     public void status(final RoutingContext routingContext) {

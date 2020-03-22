@@ -1,10 +1,13 @@
 package com.tesco.substitutions.application.handler;
 
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.inject.Singleton;
+import java.util.List;
+
 @Slf4j
+@Singleton
 public class TpnbValidator {
 
     boolean isValidTpnb(final String tpnb) {
