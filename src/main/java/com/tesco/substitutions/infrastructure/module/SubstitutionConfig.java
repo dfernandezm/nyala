@@ -8,32 +8,32 @@ import com.tesco.substitutions.application.handler.StatusEndpointHandler;
 import com.tesco.substitutions.infrastructure.endpoints.StatusEndpointDefinition;
 import com.tesco.substitutions.infrastructure.endpoints.SubstitutionsRoutes;
 import io.micronaut.context.annotation.Bean;
+import io.micronaut.context.annotation.Factory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.redis.RedisOptions;
 import io.vertx.rxjava.core.Context;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.redis.RedisClient;
 
-import javax.inject.Named;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
+@Factory
 public class SubstitutionConfig {
 
     private final Vertx vertx;
     private final Context context;
 
-    public SubstitutionConfig(Vertx vertx) {
-        this.vertx = vertx;
-        this.context = vertx.getOrCreateContext();
-    }
-
-//    public SubstitutionConfig() {
-//        this.vertx = Vertx.vertx();
+//    public SubstitutionConfig(Vertx vertx) {
+//        this.vertx = vertx;
 //        this.context = vertx.getOrCreateContext();
 //    }
+
+    public SubstitutionConfig() {
+        this.vertx = Vertx.vertx();
+        this.context = vertx.getOrCreateContext();
+    }
 
     @Bean
     public RedisClient redisClient() {
@@ -42,7 +42,6 @@ public class SubstitutionConfig {
         return RedisClient.create(this.vertx, redisOptions);
     }
 
-    //final SubsEndpointDefinition subsEndpointDefinition
     @Bean
     public List<EndpointDefinition> endpointDefinitions(final StatusEndpointDefinition statusEndpointDefinition) {
         return ImmutableList.of(statusEndpointDefinition);
@@ -56,7 +55,6 @@ public class SubstitutionConfig {
     }
 
     @Bean
-    @Named("routerFactoryMine")
     public RouterFactory routerFactory(StatusEndpointHandler statusEndpointHandler /*SubsHandler subsHandler*/) {
         StatusEndpointDefinition statusEndpointDefinition = new StatusEndpointDefinition(statusEndpointHandler);
         //SubsEndpointDefinition subsEndpointDefinition = new SubsEndpointDefinition(subsHandler);
