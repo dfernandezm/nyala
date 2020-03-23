@@ -15,6 +15,7 @@ import io.vertx.rxjava.core.Context;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.redis.RedisClient;
 
+import javax.inject.Singleton;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,17 +26,13 @@ public class SubstitutionConfig {
     private final Vertx vertx;
     private final Context context;
 
-//    public SubstitutionConfig(Vertx vertx) {
-//        this.vertx = vertx;
-//        this.context = vertx.getOrCreateContext();
-//    }
-
-    public SubstitutionConfig() {
-        this.vertx = Vertx.vertx();
+    public SubstitutionConfig(Vertx vertx) {
+        this.vertx = vertx;
         this.context = vertx.getOrCreateContext();
     }
 
     @Bean
+    @Singleton
     public RedisClient redisClient() {
         final JsonObject redisConfiguration = this.context.config().getJsonObject("redisConfiguration");
         final RedisOptions redisOptions = new RedisOptions(redisConfiguration);
@@ -55,6 +52,7 @@ public class SubstitutionConfig {
     }
 
     @Bean
+    @Singleton
     public RouterFactory routerFactory(StatusEndpointHandler statusEndpointHandler /*SubsHandler subsHandler*/) {
         StatusEndpointDefinition statusEndpointDefinition = new StatusEndpointDefinition(statusEndpointHandler);
         //SubsEndpointDefinition subsEndpointDefinition = new SubsEndpointDefinition(subsHandler);
@@ -64,3 +62,8 @@ public class SubstitutionConfig {
         return new RouterFactory(routesDefinitions, new HashSet<>());
     }
 }
+
+//    public SubstitutionConfig() {
+//        this.vertx = Vertx.vertx();
+//        this.context = vertx.getOrCreateContext();
+//    }

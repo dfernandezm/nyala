@@ -3,6 +3,7 @@ package com.tesco.substitutions.application.verticle;
 import com.tesco.personalisation.commons.logging.LoggerHandler;
 import com.tesco.personalisation.commons.routing.RouterFactory;
 import com.tesco.personalisation.commons.shutdown.ShutdownUtils;
+import com.tesco.substitutions.infrastructure.module.SubstitutionConfig;
 import io.micronaut.context.BeanContext;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServerOptions;
@@ -23,7 +24,7 @@ public class SubstitutionsVerticle extends AbstractVerticle {
     public void start(final Future<Void> startFuture) {
         //TODO: This should probably be in the constructor
         this.beanContext = BeanContext.run();
-       // this.beanContext.registerSingleton(new SubstitutionConfig(this.vertx), true);
+        this.beanContext.registerSingleton(new SubstitutionConfig(this.vertx), true);
         this.startHttpServer(startFuture);
     }
 
@@ -59,7 +60,6 @@ public class SubstitutionsVerticle extends AbstractVerticle {
 
     private Router setupRouter() {
         // Inline injection of routerFactory and endpoints setup
-        //,Qualifiers.byName("routerFactoryMine")
         RouterFactory routerFactory = beanContext.getBean(RouterFactory.class);
         routerFactory.useLoggerHandler(new LoggerHandler());
         return routerFactory.globalRouter(this.vertx);
