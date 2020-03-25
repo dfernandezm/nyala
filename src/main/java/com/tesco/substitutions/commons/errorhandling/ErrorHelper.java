@@ -1,9 +1,7 @@
 package com.tesco.substitutions.commons.errorhandling;
 
 import com.mongodb.MongoException;
-import com.tesco.personalisation.commons.errorhandling.ApiError;
-import com.tesco.personalisation.commons.errorhandling.ApiErrorException;
-import com.tesco.personalisation.commons.jsonutils.JsonUtils;
+import com.tesco.substitutions.commons.jsonutils.JsonUtils;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.MultiMap;
 import io.vertx.core.eventbus.ReplyException;
@@ -15,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ErrorHelper {
-    private static final Logger LOGGER = LoggerFactory.getLogger(com.tesco.personalisation.commons.errorhandling.ErrorHelper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ErrorHelper.class);
     public static final Integer DEFAULT_ERROR_STATUS_CODE = 500;
 
     public ErrorHelper() {
@@ -101,7 +99,7 @@ public class ErrorHelper {
     public static void failMessageWithException(Message message, Throwable cause, String defaultErrorMessage) {
         if (cause != null) {
             LOGGER.error("Failure with cause", cause);
-            com.tesco.personalisation.commons.errorhandling.ApiError apiError = getErrorFromException(cause);
+            ApiError apiError = getErrorFromException(cause);
             message.fail(apiError.getStatusCode(), apiError.getErrorMessage());
         } else {
             message.fail(DEFAULT_ERROR_STATUS_CODE, defaultErrorMessage);

@@ -2,17 +2,16 @@ package com.tesco.substitutions.commons.swagger.rx;
 
 import com.github.phiz71.vertx.swagger.router.DefaultServiceIdResolver;
 import com.github.phiz71.vertx.swagger.router.ServiceIdResolver;
-import com.tesco.personalisation.commons.shutdown.ShutdownUtils;
+import com.tesco.substitutions.commons.shutdown.ShutdownUtils;
 import io.swagger.models.Swagger;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.rxjava.core.eventbus.EventBus;
 import io.vertx.rxjava.ext.web.Router;
 import io.vertx.rxjava.ext.web.RoutingContext;
+
 import java.util.function.Function;
 
 public class SwaggerRouter {
-    public SwaggerRouter() {
-    }
 
     public static Router swaggerRouter(Router baseRouter, Swagger swagger, EventBus eventBus) {
         return swaggerRouter(baseRouter, swagger, eventBus, new DefaultServiceIdResolver(), (Function)null);

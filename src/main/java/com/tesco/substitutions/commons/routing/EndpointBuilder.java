@@ -1,13 +1,13 @@
 package com.tesco.substitutions.commons.routing;
 
-import com.tesco.personalisation.commons.routing.EndpointDsl.Endpoint;
-import com.tesco.personalisation.commons.routing.EndpointDsl.EndpointWithoutMethod;
+
 import io.vertx.rxjava.ext.web.Route;
 import io.vertx.rxjava.ext.web.Router;
 import io.vertx.rxjava.ext.web.RoutingContext;
+
 import java.util.function.Consumer;
 
-public class EndpointBuilder implements EndpointWithoutMethod, Endpoint {
+public class EndpointBuilder implements EndpointDsl.EndpointWithoutMethod, EndpointDsl.Endpoint {
     private final String path;
     private Consumer<RoutingContext> handler = null;
     private EndpointBuilder.Method method;
@@ -16,18 +16,18 @@ public class EndpointBuilder implements EndpointWithoutMethod, Endpoint {
         this.path = path;
     }
 
-    public static EndpointWithoutMethod forPath(String path) {
+    public static EndpointDsl.EndpointWithoutMethod forPath(String path) {
         return new EndpointBuilder(path);
     }
 
-    public Endpoint GET() {
+    public EndpointDsl.Endpoint GET() {
         this.method = (router) -> {
             return router.get(this.path);
         };
         return this;
     }
 
-    public Endpoint POST() {
+    public EndpointDsl.Endpoint POST() {
         this.method = (router) -> {
             return router.post(this.path);
         };
@@ -41,7 +41,7 @@ public class EndpointBuilder implements EndpointWithoutMethod, Endpoint {
         return router;
     }
 
-    public Endpoint then(Consumer<RoutingContext> handler) {
+    public EndpointDsl.Endpoint then(Consumer<RoutingContext> handler) {
         this.handler = handler;
         return this;
     }

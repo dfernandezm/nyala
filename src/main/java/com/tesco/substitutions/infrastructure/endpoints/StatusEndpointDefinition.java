@@ -1,10 +1,10 @@
 package com.tesco.substitutions.infrastructure.endpoints;
 
 import com.google.inject.Inject;
-import com.tesco.personalisation.commons.routing.EndpointBuilder;
-import com.tesco.personalisation.commons.routing.EndpointDefinition;
-import com.tesco.personalisation.commons.routing.EndpointDsl;
 import com.tesco.substitutions.application.handler.StatusEndpointHandler;
+import com.tesco.substitutions.commons.routing.EndpointBuilder;
+import com.tesco.substitutions.commons.routing.EndpointDefinition;
+import com.tesco.substitutions.commons.routing.EndpointDsl;
 
 public class StatusEndpointDefinition implements EndpointDefinition {
 

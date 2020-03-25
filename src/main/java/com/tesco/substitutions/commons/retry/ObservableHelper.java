@@ -1,8 +1,8 @@
 package com.tesco.substitutions.commons.retry;
 
 import com.mongodb.MongoException;
-import com.tesco.personalisation.commons.errorhandling.ApiErrorException;
-import com.tesco.personalisation.commons.logging.LoggingUtils;
+import com.tesco.substitutions.commons.errorhandling.ApiErrorException;
+import com.tesco.substitutions.commons.logging.LoggingUtils;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,15 +23,15 @@ public class ObservableHelper {
     }
 
     public static <T> Single<T> retry(Supplier<Single<T>> singleSupplier) {
-        return retryWithLinearBackoff(LoggingUtils.logTiming((Single)singleSupplier.get(), "MongoDB"));
+        return retryWithLinearBackoff(LoggingUtils.logTiming(singleSupplier.get(), "MongoDB"));
     }
 
     public static <T> Single<T> retry(Supplier<Single<T>> singleSupplier, String operationDescription) {
-        return retryWithLinearBackoff(LoggingUtils.logTiming((Single)singleSupplier.get(), operationDescription));
+        return retryWithLinearBackoff(LoggingUtils.logTiming(singleSupplier.get(), operationDescription));
     }
 
     public static <T> Single<T> retryWithExponentialBackoff(Supplier<Single<T>> singleSupplier) {
-        return retryWithExponentialBackoff((Single)singleSupplier.get());
+        return retryWithExponentialBackoff(singleSupplier.get());
     }
 
     private static <T> Single<T> retryWithLinearBackoff(Single<T> sourceChain) {

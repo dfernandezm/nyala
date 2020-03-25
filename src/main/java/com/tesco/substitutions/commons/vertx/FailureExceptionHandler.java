@@ -1,6 +1,6 @@
 package com.tesco.substitutions.commons.vertx;
 
-import com.tesco.personalisation.commons.errorhandling.ApiErrorException;
+import com.tesco.substitutions.commons.errorhandling.ApiErrorException;
 import io.vavr.API;
 import io.vavr.Predicates;
 import io.vertx.core.Handler;
@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FailureExceptionHandler implements Handler<RoutingContext> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(com.tesco.personalisation.commons.vertx.FailureExceptionHandler.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(FailureExceptionHandler.class.getName());
 
     public FailureExceptionHandler() {
 
@@ -25,7 +25,7 @@ public class FailureExceptionHandler implements Handler<RoutingContext> {
             LOGGER.error("UnexpectedFailure", throwable);
             return 500;
         })});
-        String payload = Json.encode(com.tesco.personalisation.commons.vertx.FailureExceptionHandler.ExceptionPayload.of(throwable.getMessage()));
+        String payload = Json.encode(throwable.getMessage());
         context.response().setStatusCode(httpStatusCode);
         context.response().end(payload);
     }

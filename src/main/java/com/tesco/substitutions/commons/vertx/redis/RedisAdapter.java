@@ -17,7 +17,7 @@ public class RedisAdapter {
     private static final int DEFAULT_TIMEOUT_REDIS_MILLISECONDS = 5000;
     private static final int DEFAULT_TIMEOUT_PING_REDIS_MILLISECONDS = 2000;
     private static final int DEFAULT_RETRY_TIME_REDIS_SECONDS = 3;
-    private static final Logger LOGGER = LoggerFactory.getLogger(com.tesco.personalisation.commons.vertx.redis.RedisAdapter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisAdapter.class);
 
     public static Completable verifyRedisIsUp(RedisClient redisClient) {
         return redisClient.rxPing().timeout(5000L, TimeUnit.MILLISECONDS).flatMapCompletable((result) -> {

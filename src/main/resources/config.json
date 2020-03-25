@@ -18,7 +18,7 @@
       }
     },
     {
-      "main": "com.tesco.personalisation.commons.vertx.verticle.StatusVerticle",
+      "main": "com.tesco.substitutions.commons.vertx.verticle.StatusVerticle",
       "options": {
         "instances": 1,
         "config": {}

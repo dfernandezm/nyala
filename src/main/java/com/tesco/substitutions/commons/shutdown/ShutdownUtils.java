@@ -1,6 +1,6 @@
 package com.tesco.substitutions.commons.shutdown;
 
-import com.tesco.personalisation.commons.logging.LoggerHandler;
+import com.tesco.substitutions.commons.logging.LoggerHandler;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.EventBus;

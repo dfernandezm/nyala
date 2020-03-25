@@ -1,6 +1,7 @@
 package com.tesco.substitutions.commons.vertx;
 
-import com.tesco.personalisation.commons.shutdown.ShutdownUtils;
+
+import com.tesco.substitutions.commons.shutdown.ShutdownUtils;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
@@ -14,7 +15,7 @@ import rx.Observable;
 import java.util.concurrent.CountDownLatch;
 
 public class MultiDeploySetupVerticle extends AbstractVerticle {
-    private static final Logger LOGGER = LoggerFactory.getLogger(com.tesco.personalisation.commons.vertx.MultiDeploySetupVerticle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MultiDeploySetupVerticle.class);
 
     public void start(Future<Void> startFuture) throws Exception {
         this.deployVerticles(startFuture);

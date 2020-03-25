@@ -1,6 +1,7 @@
 package com.tesco.substitutions.commons.routing;
 
-import com.tesco.personalisation.commons.vertx.FailureExceptionHandler;
+
+import com.tesco.substitutions.commons.vertx.FailureExceptionHandler;
 import io.vavr.collection.Array;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.handler.LoggerFormat;

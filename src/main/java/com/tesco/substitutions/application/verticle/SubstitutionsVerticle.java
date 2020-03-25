@@ -1,10 +1,12 @@
 package com.tesco.substitutions.application.verticle;
 
-import com.tesco.personalisation.commons.logging.LoggerHandler;
-import com.tesco.personalisation.commons.routing.RouterFactory;
-import com.tesco.personalisation.commons.shutdown.ShutdownUtils;
+
+import com.tesco.substitutions.commons.logging.LoggerHandler;
+import com.tesco.substitutions.commons.routing.RouterFactory;
+import com.tesco.substitutions.commons.shutdown.ShutdownUtils;
 import com.tesco.substitutions.infrastructure.module.SubstitutionConfig;
 import io.micronaut.context.BeanContext;
+import io.micronaut.inject.qualifiers.Qualifiers;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.rxjava.core.AbstractVerticle;
@@ -60,7 +62,7 @@ public class SubstitutionsVerticle extends AbstractVerticle {
 
     private Router setupRouter() {
         // Inline injection of routerFactory and endpoints setup
-        RouterFactory routerFactory = beanContext.getBean(RouterFactory.class);
+        RouterFactory routerFactory = beanContext.getBean(RouterFactory.class, Qualifiers.byName("subsRouterFactory"));
         routerFactory.useLoggerHandler(new LoggerHandler());
         return routerFactory.globalRouter(this.vertx);
     }

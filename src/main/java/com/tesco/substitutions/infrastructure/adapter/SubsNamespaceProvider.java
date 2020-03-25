@@ -1,19 +1,21 @@
 package com.tesco.substitutions.infrastructure.adapter;
 
-import static com.tesco.substitutions.infrastructure.adapter.SubstitutesRedisService.REDIS_FIND_TIMEOUT;
 
-import com.tesco.personalisation.commons.errorhandling.ApiErrorException;
+import com.tesco.substitutions.commons.errorhandling.ApiErrorException;
 import com.tesco.substitutions.domain.model.UnavailableProduct;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.rxjava.redis.RedisClient;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import rx.Single;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.tesco.substitutions.infrastructure.adapter.SubstitutesRedisService.REDIS_FIND_TIMEOUT;
 
 @Slf4j
 public class SubsNamespaceProvider {

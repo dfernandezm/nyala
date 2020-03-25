@@ -1,6 +1,7 @@
 package com.tesco.substitutions.commons.vertx.verticle;
 
-import com.tesco.personalisation.commons.shutdown.ShutdownUtils;
+
+import com.tesco.substitutions.commons.shutdown.ShutdownUtils;
 import com.tesco.substitutions.commons.vertx.redis.RedisAdapter;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
@@ -14,8 +15,6 @@ import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Single;
-
-//import com.tesco.personalisation.commons.vertx.redis.RedisAdapter;
 
 public class StatusVerticle extends AbstractVerticle {
     public static final String STATUS_ADDRESS = "status";

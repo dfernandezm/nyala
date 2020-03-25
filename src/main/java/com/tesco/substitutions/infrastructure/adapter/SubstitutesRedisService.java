@@ -1,6 +1,7 @@
 package com.tesco.substitutions.infrastructure.adapter;
 
-import com.tesco.personalisation.commons.logging.LoggingUtils;
+
+import com.tesco.substitutions.commons.logging.LoggingUtils;
 import com.tesco.substitutions.domain.model.Substitution;
 import com.tesco.substitutions.domain.model.UnavailableProduct;
 import com.tesco.substitutions.domain.service.SubstitutionsService;
@@ -136,6 +137,6 @@ public class SubstitutesRedisService implements SubstitutionsService {
         log.info("Getting substitutions from Redis for {}", redisKeys);
         return this.redisClient.rxMgetMany(redisKeys)
                 .timeout(REDIS_FIND_TIMEOUT, TimeUnit.MILLISECONDS)
-                .map(response -> this.redisResponseMapper.mapSubstitutionsResponse(response));
+                .map(this.redisResponseMapper::mapSubstitutionsResponse);
     }
 }

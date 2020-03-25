@@ -1,6 +1,6 @@
 package com.tesco.substitutions.infrastructure.adapter
 
-import com.tesco.personalisation.commons.errorhandling.ApiErrorException
+import com.tesco.substitutions.commons.errorhandling.ApiErrorException
 import com.tesco.substitutions.domain.model.UnavailableProduct
 import io.vertx.rxjava.redis.RedisClient
 import org.assertj.core.util.Lists

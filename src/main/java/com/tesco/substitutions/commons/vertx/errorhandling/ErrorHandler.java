@@ -1,8 +1,9 @@
 package com.tesco.substitutions.commons.vertx.errorhandling;
 
-import com.tesco.personalisation.commons.errorhandling.ApiError;
-import com.tesco.personalisation.commons.errorhandling.ApiErrorException;
-import com.tesco.personalisation.commons.jsonutils.JsonUtils;
+
+import com.tesco.substitutions.commons.errorhandling.ApiError;
+import com.tesco.substitutions.commons.errorhandling.ApiErrorException;
+import com.tesco.substitutions.commons.jsonutils.JsonUtils;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.json.DecodeException;
 import io.vertx.rxjava.core.http.HttpServerResponse;

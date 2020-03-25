@@ -1,6 +1,7 @@
 package com.tesco.substitutions.application.handler;
 
-import com.tesco.personalisation.commons.vertx.verticle.StatusVerticle;
+
+import com.tesco.substitutions.commons.vertx.verticle.StatusVerticle;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;

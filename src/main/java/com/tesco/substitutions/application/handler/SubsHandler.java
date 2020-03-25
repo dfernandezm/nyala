@@ -1,6 +1,7 @@
 package com.tesco.substitutions.application.handler;
 
-import com.tesco.personalisation.commons.vertx.errorhandling.ErrorHandler;
+
+import com.tesco.substitutions.commons.vertx.errorhandling.ErrorHandler;
 import com.tesco.substitutions.domain.model.UnavailableProduct;
 import com.tesco.substitutions.domain.service.SubstitutionsService;
 import io.vertx.core.json.JsonArray;

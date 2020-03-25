@@ -1,7 +1,7 @@
 package com.tesco.substitutions.infrastructure.endpoints;
 
-import com.tesco.personalisation.commons.routing.EndpointDefinition;
-import com.tesco.personalisation.commons.routing.RoutesDefinition;
+import com.tesco.substitutions.commons.routing.EndpointDefinition;
+import com.tesco.substitutions.commons.routing.RoutesDefinition;
 import io.vavr.collection.Array;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.ext.web.Router;

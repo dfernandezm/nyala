@@ -1,10 +1,10 @@
 package com.tesco.substitutions.infrastructure.module;
 
 import com.google.common.collect.ImmutableList;
-import com.tesco.personalisation.commons.routing.EndpointDefinition;
-import com.tesco.personalisation.commons.routing.RouterFactory;
-import com.tesco.personalisation.commons.routing.RoutesDefinition;
 import com.tesco.substitutions.application.handler.StatusEndpointHandler;
+import com.tesco.substitutions.commons.routing.EndpointDefinition;
+import com.tesco.substitutions.commons.routing.RouterFactory;
+import com.tesco.substitutions.commons.routing.RoutesDefinition;
 import com.tesco.substitutions.infrastructure.endpoints.StatusEndpointDefinition;
 import com.tesco.substitutions.infrastructure.endpoints.SubstitutionsRoutes;
 import io.micronaut.context.annotation.Bean;
@@ -15,6 +15,7 @@ import io.vertx.rxjava.core.Context;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.redis.RedisClient;
 
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +53,7 @@ public class SubstitutionConfig {
     }
 
     @Bean
+    @Named("subsRouterFactory")
     @Singleton
     public RouterFactory routerFactory(StatusEndpointHandler statusEndpointHandler /*SubsHandler subsHandler*/) {
         StatusEndpointDefinition statusEndpointDefinition = new StatusEndpointDefinition(statusEndpointHandler);
