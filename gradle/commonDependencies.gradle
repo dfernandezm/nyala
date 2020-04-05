@@ -151,6 +151,9 @@ dependencies {
     annotationProcessor "io.micronaut:micronaut-inject-java"
     compile "io.micronaut:micronaut-inject"
 
+    compile 'org.jsoup:jsoup:1.13.1'
+
+
 
 
 }
