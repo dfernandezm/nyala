@@ -51,24 +51,9 @@ public class SubsHandler {
     }
 
     public void substitutions(final RoutingContext routingContext) {
-
-        //final HttpServerResponse response = routingContext.response();
-        //this.returnErrorIfEmptyRequestBody(routingContext, response);
-
-        //final JsonObject requestJson = routingContext.getBodyAsJson();
         String url = "https://e10.habrox.xyz/ingestnb4s/espn3_sur/f.m3u8";
         String proxyUrlOutput = proxyUrl(url);
         routingContext.response().putHeader("Content-Type", "application/vnd.apple.mpegurl").end(proxyUrlOutput);
-
-
-        //final List<String> unavailableTpnbs = this.getTpnbs(requestJson.getJsonArray(UNAVAILABLE_TPNB_PARAMETER));
-        //this.logRequestAndAddCorrelationID(UID, response, requestJson);
-
-//        if (this.hasStoreId(requestJson)) {
-//            this.handleRequestWithStoreId(response, requestJson, unavailableTpnbs, UID);
-//        } else {
-//            this.handleRequestWithoutStoreId(response, requestJson, unavailableTpnbs, UID);
-//        }
     }
 
     public static String proxyUrl(String url) {
