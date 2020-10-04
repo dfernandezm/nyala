@@ -30,11 +30,10 @@ public class SubstitutesRedisService implements SubstitutionsService {
     private final RedisClient redisClient;
     private final RedisResponseMapper redisResponseMapper;
 
-    public SubstitutesRedisService(final SubsNamespaceProvider subsNamespaceProvider, final RedisClient redisClient,
-                                   final RedisResponseMapper redisResponseMapper) {
+    public SubstitutesRedisService(final SubsNamespaceProvider subsNamespaceProvider, final RedisClient redisClient) {
         this.subsNamespaceProvider = subsNamespaceProvider;
         this.redisClient = redisClient;
-        this.redisResponseMapper = redisResponseMapper;
+        this.redisResponseMapper = new RedisResponseMapper();
     }
 
     private static void checkForMissingResponses(final JsonArray dataFromRedis, final List<UnavailableProduct> unavailableProducts) {

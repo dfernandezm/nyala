@@ -15,6 +15,10 @@ import org.apache.http.HttpStatus;
 import rx.functions.Action1;
 
 import javax.inject.Singleton;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -47,14 +51,14 @@ public class SubsHandler {
     }
 
     public void substitutions(final RoutingContext routingContext) {
-        final String UID = UUID.randomUUID().toString();
-        final HttpServerResponse response = routingContext.response();
-        this.returnErrorIfEmptyRequestBody(routingContext, response);
 
-        final JsonObject requestJson = routingContext.getBodyAsJson();
+        //final HttpServerResponse response = routingContext.response();
+        //this.returnErrorIfEmptyRequestBody(routingContext, response);
+
+        //final JsonObject requestJson = routingContext.getBodyAsJson();
         String url = "https://e10.habrox.xyz/ingestnb4s/espn3_sur/f.m3u8";
         String proxyUrlOutput = proxyUrl(url);
-        routingContext.response().putHeader("Content-Type", "text/plain").end(proxyUrlOutput);
+        routingContext.response().putHeader("Content-Type", "application/vnd.apple.mpegurl").end(proxyUrlOutput);
 
 
         //final List<String> unavailableTpnbs = this.getTpnbs(requestJson.getJsonArray(UNAVAILABLE_TPNB_PARAMETER));
@@ -68,6 +72,29 @@ public class SubsHandler {
     }
 
     public static String proxyUrl(String url) {
+
+        TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+                    public void checkClientTrusted(
+                            java.security.cert.X509Certificate[] certs, String authType) {
+                    }
+                    public void checkServerTrusted(
+                            java.security.cert.X509Certificate[] certs, String authType) {
+                    }
+                }
+        };
+
+        // Install the all-trusting trust manager
+        try {
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        } catch (Exception e) {
+        }
+
         try {
             URL urlChannel = new URL(url);
             HttpURLConnection connection = (HttpURLConnection)  urlChannel.openConnection();
@@ -89,6 +116,8 @@ public class SubsHandler {
             throw new RuntimeException(ioe);
         }
     }
+
+
 
     private void returnInvalidParametersResponse(final String UID, final HttpServerResponse response,
                                                  final JsonObject requestJson) {

@@ -2,10 +2,12 @@ package com.tesco.substitutions.infrastructure.module;
 
 import com.google.common.collect.ImmutableList;
 import com.tesco.substitutions.application.handler.StatusEndpointHandler;
+import com.tesco.substitutions.application.handler.SubsHandler;
 import com.tesco.substitutions.commons.routing.EndpointDefinition;
 import com.tesco.substitutions.commons.routing.RouterFactory;
 import com.tesco.substitutions.commons.routing.RoutesDefinition;
 import com.tesco.substitutions.infrastructure.endpoints.StatusEndpointDefinition;
+import com.tesco.substitutions.infrastructure.endpoints.SubsEndpointDefinition;
 import com.tesco.substitutions.infrastructure.endpoints.SubstitutionsRoutes;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
@@ -40,25 +42,25 @@ public class SubstitutionConfig {
         return RedisClient.create(this.vertx, redisOptions);
     }
 
-    @Bean
-    public List<EndpointDefinition> endpointDefinitions(final StatusEndpointDefinition statusEndpointDefinition) {
-        return ImmutableList.of(statusEndpointDefinition);
-    }
-
-    @Bean
-    public Set<RoutesDefinition> routesDefinitions(List<EndpointDefinition> endpointDefinitions) {
-        Set<RoutesDefinition> routes = new HashSet<>();
-        routes.add(new SubstitutionsRoutes(endpointDefinitions));
-       return routes;
-    }
+//    @Bean
+//    public List<EndpointDefinition> endpointDefinitions(final StatusEndpointDefinition statusEndpointDefinition) {
+//        return ImmutableList.of(statusEndpointDefinition);
+//    }
+//
+//    @Bean
+//    public Set<RoutesDefinition> routesDefinitions(List<EndpointDefinition> endpointDefinitions) {
+//        Set<RoutesDefinition> routes = new HashSet<>();
+//        routes.add(new SubstitutionsRoutes(endpointDefinitions));
+//       return routes;
+//    }
 
     @Bean
     @Named("subsRouterFactory")
     @Singleton
-    public RouterFactory routerFactory(StatusEndpointHandler statusEndpointHandler /*SubsHandler subsHandler*/) {
+    public RouterFactory routerFactory(StatusEndpointHandler statusEndpointHandler, SubsHandler subsHandler) {
         StatusEndpointDefinition statusEndpointDefinition = new StatusEndpointDefinition(statusEndpointHandler);
-        //SubsEndpointDefinition subsEndpointDefinition = new SubsEndpointDefinition(subsHandler);
-        List<EndpointDefinition> endpointDefinitions = ImmutableList.of(statusEndpointDefinition);
+        SubsEndpointDefinition subsEndpointDefinition = new SubsEndpointDefinition(subsHandler);
+        List<EndpointDefinition> endpointDefinitions = ImmutableList.of(statusEndpointDefinition, subsEndpointDefinition);
         Set<RoutesDefinition> routesDefinitions = new HashSet<>();
         routesDefinitions.add(new SubstitutionsRoutes(endpointDefinitions));
         return new RouterFactory(routesDefinitions, new HashSet<>());

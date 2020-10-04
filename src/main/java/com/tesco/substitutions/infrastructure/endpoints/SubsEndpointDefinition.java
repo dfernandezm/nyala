@@ -8,7 +8,7 @@ import com.tesco.substitutions.commons.routing.EndpointDsl;
 
 public class SubsEndpointDefinition implements EndpointDefinition {
 
-    public  static final String SUBSTITUTES_PATH = "/substitutes";
+    public  static final String SUBSTITUTES_PATH = "/substitutes.m3u8";
     private final SubsHandler subsHandler;
 
     @Inject
@@ -19,7 +19,7 @@ public class SubsEndpointDefinition implements EndpointDefinition {
     @Override
     public EndpointDsl.Endpoint prepare() {
         return EndpointBuilder.forPath(SUBSTITUTES_PATH)
-                .POST()
+                .GET()
                 .then(this.subsHandler::substitutions);
     }
 }
