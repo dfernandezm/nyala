@@ -28,6 +28,6 @@ public class SwaggerRouter {
         Function<io.vertx.ext.web.RoutingContext, DeliveryOptions> configureMessageDelegate = (rc) -> {
             return (DeliveryOptions)configureMessage.apply(new RoutingContext(rc));
         };
-        return new Router(com.tesco.personalisation.commons.swagger.core.SwaggerRouter.swaggerRouter(baseRouterDelegate, swagger, eventBusDelegate, serviceIdResolver, configureMessageDelegate));
+        return new Router(com.tesco.substitutions.commons.swagger.core.SwaggerRouter.swaggerRouter(baseRouterDelegate, swagger, eventBusDelegate, serviceIdResolver, configureMessageDelegate));
     }
 }

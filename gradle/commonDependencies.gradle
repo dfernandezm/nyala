@@ -53,7 +53,7 @@ dependencyManagement {
 
 dependencies {
     //TrexCommons
-    compile "com.tesco:commons:$commonsVersion"
+    //compile "com.tesco:commons:$commonsVersion"
 
     //Commons
     compile group: "org.apache.commons", name: "commons-collections4", version: "$commonsCollectionsVersion"

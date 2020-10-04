@@ -8,6 +8,7 @@ import com.tesco.substitutions.commons.routing.EndpointDsl;
 
 public class StatusEndpointDefinition implements EndpointDefinition {
 
+    // curl -i http://localhost:9014/substitution/v1/_status
     public static final String STATUS_PATH = "/_status";
     private final StatusEndpointHandler statusEndpointHandler;
 

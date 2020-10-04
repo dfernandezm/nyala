@@ -9,11 +9,17 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.core.http.HttpServerResponse;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import rx.functions.Action1;
 
 import javax.inject.Singleton;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,17 +49,44 @@ public class SubsHandler {
     public void substitutions(final RoutingContext routingContext) {
         final String UID = UUID.randomUUID().toString();
         final HttpServerResponse response = routingContext.response();
-
         this.returnErrorIfEmptyRequestBody(routingContext, response);
 
         final JsonObject requestJson = routingContext.getBodyAsJson();
-        final List<String> unavailableTpnbs = this.getTpnbs(requestJson.getJsonArray(UNAVAILABLE_TPNB_PARAMETER));
-        this.logRequestAndAddCorrelationID(UID, response, requestJson);
+        String url = "https://e10.habrox.xyz/ingestnb4s/espn3_sur/f.m3u8";
+        String proxyUrlOutput = proxyUrl(url);
+        routingContext.response().putHeader("Content-Type", "text/plain").end(proxyUrlOutput);
 
-        if (this.hasStoreId(requestJson)) {
-            this.handleRequestWithStoreId(response, requestJson, unavailableTpnbs, UID);
-        } else {
-            this.handleRequestWithoutStoreId(response, requestJson, unavailableTpnbs, UID);
+
+        //final List<String> unavailableTpnbs = this.getTpnbs(requestJson.getJsonArray(UNAVAILABLE_TPNB_PARAMETER));
+        //this.logRequestAndAddCorrelationID(UID, response, requestJson);
+
+//        if (this.hasStoreId(requestJson)) {
+//            this.handleRequestWithStoreId(response, requestJson, unavailableTpnbs, UID);
+//        } else {
+//            this.handleRequestWithoutStoreId(response, requestJson, unavailableTpnbs, UID);
+//        }
+    }
+
+    public static String proxyUrl(String url) {
+        try {
+            URL urlChannel = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection)  urlChannel.openConnection();
+            connection.setConnectTimeout(1000);
+            connection.setReadTimeout(1000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Referer", "https://espn-live.stream/stream/54015.html");
+            connection.setRequestProperty("Origin", "https://espn-live.stream/stream/54015.html");
+            connection.setRequestProperty("User-Agent", " Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36");
+            connection.connect();
+            int statusCode = connection.getResponseCode();
+            String contentType = connection.getContentType();
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String output = IOUtils.toString(br);
+            log.info("{} -> Response code: {}, Content Type: {}", url, statusCode, contentType);
+            log.info("Response content: {}", output);
+            return output;
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
         }
     }
 
