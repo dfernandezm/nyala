@@ -66,8 +66,3 @@ public class SubstitutionConfig {
         return new RouterFactory(routesDefinitions, new HashSet<>());
     }
 }
-
-//    public SubstitutionConfig() {
-//        this.vertx = Vertx.vertx();
-//        this.context = vertx.getOrCreateContext();
-//    }

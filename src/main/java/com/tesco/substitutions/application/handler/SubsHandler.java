@@ -25,7 +25,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -53,11 +52,13 @@ public class SubsHandler {
     public void substitutions(final RoutingContext routingContext) {
         String url = "https://e10.habrox.xyz/ingestnb4s/espn3_sur/f.m3u8";
         String proxyUrlOutput = proxyUrl(url);
-        routingContext.response().putHeader("Content-Type", "application/vnd.apple.mpegurl").end(proxyUrlOutput);
+        routingContext
+                .response()
+                .putHeader("Content-Type", "application/vnd.apple.mpegurl")
+                .end(proxyUrlOutput);
     }
 
     public static String proxyUrl(String url) {
-
         TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
                     public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -101,8 +102,6 @@ public class SubsHandler {
             throw new RuntimeException(ioe);
         }
     }
-
-
 
     private void returnInvalidParametersResponse(final String UID, final HttpServerResponse response,
                                                  final JsonObject requestJson) {

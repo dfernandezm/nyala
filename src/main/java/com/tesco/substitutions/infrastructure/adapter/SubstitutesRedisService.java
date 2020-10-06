@@ -26,14 +26,16 @@ public class SubstitutesRedisService implements SubstitutionsService {
 
     static final Long REDIS_FIND_TIMEOUT = 3000L;
 
-    private final SubsNamespaceProvider subsNamespaceProvider;
-    private final RedisClient redisClient;
-    private final RedisResponseMapper redisResponseMapper;
+    private SubsNamespaceProvider subsNamespaceProvider;
+    private RedisClient redisClient;
+    private RedisResponseMapper redisResponseMapper;
 
-    public SubstitutesRedisService(final SubsNamespaceProvider subsNamespaceProvider, final RedisClient redisClient) {
+    public SubstitutesRedisService(final SubsNamespaceProvider subsNamespaceProvider,
+                                   final RedisClient redisClient,
+                                   final RedisResponseMapper redisResponseMapper) {
         this.subsNamespaceProvider = subsNamespaceProvider;
         this.redisClient = redisClient;
-        this.redisResponseMapper = new RedisResponseMapper();
+        this.redisResponseMapper = redisResponseMapper;
     }
 
     private static void checkForMissingResponses(final JsonArray dataFromRedis, final List<UnavailableProduct> unavailableProducts) {

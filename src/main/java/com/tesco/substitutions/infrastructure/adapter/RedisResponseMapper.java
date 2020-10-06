@@ -1,17 +1,14 @@
 package com.tesco.substitutions.infrastructure.adapter;
 
-import com.google.inject.Inject;
 import io.vertx.core.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Singleton;
 import java.util.Optional;
 
 @Slf4j
+@Singleton
 public class RedisResponseMapper {
-
-    public RedisResponseMapper(){
-
-    }
 
     public JsonArray mapSubstitutionsResponse(JsonArray redisResponse){
         return  wrapResponseAsJsonArrayIfNeeded(redisResponse);
