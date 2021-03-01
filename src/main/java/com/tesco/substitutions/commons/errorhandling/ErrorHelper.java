@@ -20,7 +20,7 @@ public class ErrorHelper {
     }
 
     public static void manageBadRequestError(Throwable e, HttpServerResponse response) {
-        LOGGER.error("Bad Request Error detected: {}", e);
+        LOGGER.error("Bad Request Error detected", e);
         String errorMessage = e.getMessage();
         int statusCode = 400;
         respondWithError((HttpServerResponse)response, statusCode, errorMessage);
@@ -104,7 +104,6 @@ public class ErrorHelper {
         } else {
             message.fail(DEFAULT_ERROR_STATUS_CODE, defaultErrorMessage);
         }
-
     }
 
     private static ApiError getErrorFromException(Throwable cause) {

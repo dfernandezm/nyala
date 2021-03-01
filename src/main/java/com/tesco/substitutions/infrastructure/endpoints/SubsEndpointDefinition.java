@@ -1,7 +1,7 @@
 package com.tesco.substitutions.infrastructure.endpoints;
 
 import com.google.inject.Inject;
-import com.tesco.substitutions.application.handler.SubsHandler;
+import com.tesco.substitutions.application.handler.ChannelProxyHandler;
 import com.tesco.substitutions.commons.routing.EndpointBuilder;
 import com.tesco.substitutions.commons.routing.EndpointDefinition;
 import com.tesco.substitutions.commons.routing.EndpointDsl;
@@ -9,10 +9,10 @@ import com.tesco.substitutions.commons.routing.EndpointDsl;
 public class SubsEndpointDefinition implements EndpointDefinition {
 
     public  static final String SUBSTITUTES_PATH = "/substitutes.m3u8";
-    private final SubsHandler subsHandler;
+    private final ChannelProxyHandler subsHandler;
 
     @Inject
-    public SubsEndpointDefinition(final SubsHandler subsHandler) {
+    public SubsEndpointDefinition(final ChannelProxyHandler subsHandler) {
         this.subsHandler = subsHandler;
     }
 
@@ -20,6 +20,6 @@ public class SubsEndpointDefinition implements EndpointDefinition {
     public EndpointDsl.Endpoint prepare() {
         return EndpointBuilder.forPath(SUBSTITUTES_PATH)
                 .GET()
-                .then(this.subsHandler::substitutions);
+                .then(this.subsHandler::proxy);
     }
 }

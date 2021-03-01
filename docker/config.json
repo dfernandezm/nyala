@@ -11,7 +11,7 @@
   },
   "verticles": [
     {
-      "main": "com.tesco.substitutions.application.verticle.SubstitutionsVerticle",
+      "main": "com.tesco.substitutions.application.verticle.ChannelsVerticle",
       "options": {
         "instances": 1,
         "config": {}

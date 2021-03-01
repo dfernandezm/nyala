@@ -1,8 +1,8 @@
 package com.tesco.substitutions.test.integration;
 
 import static com.google.common.net.MediaType.JSON_UTF_8;
-import static com.tesco.substitutions.application.handler.SubsHandler.BAD_REQUEST_EMPTY_BODY_MESSAGE;
-import static com.tesco.substitutions.application.handler.SubsHandler.BAD_REQUEST_ERROR_MESSAGE;
+import static com.tesco.substitutions.application.handler.ChannelProxyHandler.BAD_REQUEST_EMPTY_BODY_MESSAGE;
+import static com.tesco.substitutions.application.handler.ChannelProxyHandler.BAD_REQUEST_ERROR_MESSAGE;
 import static com.tesco.substitutions.infrastructure.endpoints.SubsEndpointDefinition.SUBSTITUTES_PATH;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.StringContains.containsString;
 
-import com.tesco.substitutions.application.handler.SubsHandler;
+import com.tesco.substitutions.application.handler.ChannelProxyHandler;
 import io.restassured.module.jsv.JsonSchemaValidator;
 import io.restassured.path.json.JsonPath;
 import io.vertx.ext.unit.TestContext;
@@ -230,7 +230,7 @@ public class SubstitutionsApiRestIT {
                 .log().all()
                 .assertThat()
                 .contentType(JSON)
-                .header(SubsHandler.REQUEST_BODY_ERROR_HEADER, equalTo("No Store ID passed"))
+                .header(ChannelProxyHandler.REQUEST_BODY_ERROR_HEADER, equalTo("No Store ID passed"))
                 .assertThat().body(JsonSchemaValidator.matchesJsonSchemaInClasspath(TREXSUBS_SUBSTITUTES_SCHEMA_JSON))
                 .assertThat().body("substitutions[0].substitutes", is(equalTo(readSubTpnsFromFileForGivenTpnb("55555555"))))
                 .assertThat().body("substitutions[1].substitutes", is(equalTo(readSubTpnsFromFileForGivenTpnb("66666666"))))

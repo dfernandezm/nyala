@@ -5,8 +5,8 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.Arrays;
 
-import static com.tesco.substitutions.application.handler.SubsHandler.STORE_ID_PARAMETER;
-import static com.tesco.substitutions.application.handler.SubsHandler.UNAVAILABLE_TPNB_PARAMETER;
+import static com.tesco.substitutions.application.handler.ChannelProxyHandler.STORE_ID_PARAMETER;
+import static com.tesco.substitutions.application.handler.ChannelProxyHandler.UNAVAILABLE_TPNB_PARAMETER;
 
 public class JsonBodyRequestBuilder {
 
