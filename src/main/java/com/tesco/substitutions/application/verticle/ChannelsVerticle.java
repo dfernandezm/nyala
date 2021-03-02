@@ -1,6 +1,7 @@
 package com.tesco.substitutions.application.verticle;
 
 
+import com.tesco.substitutions.application.handler.StatusEndpointHandler;
 import com.tesco.substitutions.commons.shutdown.ShutdownUtils;
 import com.tesco.substitutions.commons.vertx.verticle.Channel;
 import com.tesco.substitutions.infrastructure.module.IptvAggregatorConfig;
@@ -70,8 +71,14 @@ public class ChannelsVerticle extends AbstractVerticle {
     // https://github.com/vert-x3/vertx-examples/blob/4.x/web-examples/src/main/java/io/vertx/example/web/rest/SimpleREST.java
     private Router setupRouter(Integer port) {
         Router router = Router.router(vertx);
+
+        //TODO: should get it from beancontext
+        StatusEndpointHandler statusEndpointHandler = new StatusEndpointHandler();
+
         router.route().handler(BodyHandler.create());
         router.get("/channels").handler(this::handleGetChannels);
+        router.get("/_status").handler(statusEndpointHandler::status);
+
         return router;
     }
 
