@@ -1,20 +1,21 @@
 package com.tesco.substitutions.test.integration;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.equalTo;
-
 import io.restassured.http.ContentType;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import java.io.FileNotFoundException;
 import org.apache.http.HttpStatus;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.FileNotFoundException;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.equalTo;
+
 @RunWith(VertxUnitRunner.class)
-public class SubstitutionsStatusRestIT {
+public class StatusRestIT {
 
     @BeforeClass
     public static void beforeAllTests(final TestContext context) throws FileNotFoundException {
