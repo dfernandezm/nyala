@@ -1,8 +1,5 @@
 package com.tesco.substitutions.test.integration;
 
-import static com.tesco.substitutions.infrastructure.adapter.SubsNamespaceProvider.REDIS_KEYS_SUBS_IN_CFC_NAMESPACE;
-import static com.tesco.substitutions.infrastructure.adapter.SubsNamespaceProvider.REDIS_KEYS_SUBS_NAMESPACE;
-
 import com.tesco.substitutions.application.verticle.MainStarter;
 import com.tesco.substitutions.infrastructure.adapter.SubsNamespaceProvider;
 import com.tesco.substitutions.infrastructure.endpoints.SubstitutionsRoutes;
@@ -13,17 +10,21 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
 import io.vertx.redis.RedisOptions;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.redis.RedisClient;
+import rx.Single;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import io.vertx.ext.unit.TestContext;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-import rx.Single;
+
+import static com.tesco.substitutions.infrastructure.adapter.SubsNamespaceProvider.REDIS_KEYS_SUBS_IN_CFC_NAMESPACE;
+import static com.tesco.substitutions.infrastructure.adapter.SubsNamespaceProvider.REDIS_KEYS_SUBS_NAMESPACE;
 
 public class TestHelper {
 
@@ -52,7 +53,7 @@ public class TestHelper {
             if (result.succeeded()) {
                 final JsonObject config = result.result().toJsonObject();
 
-                //Multideploy class expects this structure
+                // Multideploy class expects this structure
                 config.put("verticles", config.getJsonObject("config").getJsonArray("verticles"));
 
                 final DeploymentOptions options = new DeploymentOptions().setInstances(
