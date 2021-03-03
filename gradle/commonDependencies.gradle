@@ -15,7 +15,7 @@ ext {
     commonsCollectionsVersion = '4.1'
     commonsLangVersion = '3.4'
     commonsIoVersion = '2.5'
-    vertxVersion = '3.4.2'
+    vertxVersion = '3.5.4'
     guiceVersion = '4.1.0'
     rxJavaVersion = '2.1.0'
     typesafeVersion = '1.2.1'
@@ -54,11 +54,11 @@ dependencies {
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: "$apacheHttpVersion"
 
     //Vertx
-    compile "io.vertx:vertx-unit:$vertxVersion"
+    // compile "io.vertx:vertx-unit:$vertxVersion"
     compile "io.vertx:vertx-core:$vertxVersion"
     compile "io.vertx:vertx-web:$vertxVersion"
     compile "io.vertx:vertx-web-client:$vertxVersion"
-    compile "io.vertx:vertx-rx-java:$vertxVersion"
+    compile "io.vertx:vertx-rx-java2:$vertxVersion"
     compile "io.vertx:vertx-service-proxy:$vertxVersion"
     compile "io.vertx:vertx-codegen:$vertxVersion"
     compile "io.vertx:vertx-hazelcast:$vertxVersion"
@@ -107,12 +107,12 @@ dependencies {
     testCompile("org.mockito:mockito-all:$mockitoVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
-    testCompile("io.vertx:vertx-unit:$vertxVersion") {
+    testCompile("io.vertx:vertx-junit5:$vertxVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
-    testCompile("io.vertx:vertx-core:test-jar$vertxVersion") {
-        exclude group: 'org.hamcrest', module: 'hamcrest-all'
-    }
+//    testCompile("io.vertx:vertx-core:test-jar$vertxVersion") {
+//        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+//    }
     testCompile("io.rest-assured:rest-assured:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
@@ -122,13 +122,13 @@ dependencies {
     testCompile("io.rest-assured:json-path:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
+
     testCompile(
-            'junit:junit:4.12',
+            'org.hamcrest:hamcrest-all:1.3',
             'org.codehaus.groovy:groovy-all:2.4.4',
-            'org.spockframework:spock-core:1.0-groovy-2.4',
-            'org.assertj:assertj-core:2.0.0',
+            'org.assertj:assertj-core:3.11.1',
+            'org.junit.jupiter:junit-jupiter-api:5.7.0',
             'com.github.kstyrc:embedded-redis:0.6',
-            'de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.47.0',
             'com.github.tomakehurst:wiremock:2.6.0'
     )
 
@@ -142,5 +142,13 @@ dependencies {
     compile "io.micronaut:micronaut-inject"
 
     compile 'org.jsoup:jsoup:1.13.1'
+
+    // JAX-B dependencies for JDK 9+
+    compile "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
+    compile "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+
+    compile 'io.lindstrom:m3u8-parser:0.19'
+
+    testCompile("org.junit.jupiter:junit-jupiter-params:5.7.0")
 
 }

@@ -8,7 +8,7 @@
     },
     "verticles": [
       {
-        "main": "com.fazula.server.application.verticle.ChannelsVerticle",
+        "main": "com.nyala.server.application.verticle.ChannelsVerticle",
         "options": {
           "instances": 1,
           "config": {
@@ -17,7 +17,7 @@
         }
       },
       {
-        "main": "com.fazula.server.common.vertx.verticle.StatusVerticle",
+        "main": "com.nyala.server.common.vertx.verticle.StatusVerticle",
         "options": {
           "instances": 1,
           "config": {
@@ -25,7 +25,7 @@
         }
       },
       {
-        "main": "com.fazula.server.test.integration.EmbeddedRedis",
+        "main": "com.nyala.server.test.integration.EmbeddedRedis",
         "options": {
           "instances": 1,
           "config": {
