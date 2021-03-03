@@ -1,6 +1,0 @@
-{
-  "58396818": [{"subTpn": "11111111", "subRank": "1", "storeIds": ["1111"]}, {"subTpn": "22222222", "subRank": "2", "storeIds": ["1111"]}],
-  "52575426":  [{"subTpn": "11111111", "subRank": "1", "storeIds": ["1111"]}, {"subTpn": "22222222", "subRank": "2", "storeIds": ["1111"]}],
-  "55555555": [{"subTpn": "11111111", "subRank": "1"}, {"subTpn": "22222222", "subRank": "2"}],
-  "66666666":  [{"subTpn": "11111111", "subRank": "1"}, {"subTpn": "22222222", "subRank": "2"}],
-}

@@ -11,14 +11,14 @@
   },
   "verticles": [
     {
-      "main": "com.tesco.substitutions.application.verticle.ChannelsVerticle",
+      "main": "com.fazula.server.application.verticle.ChannelsVerticle",
       "options": {
         "instances": 1,
         "config": {}
       }
     },
     {
-      "main": "com.tesco.substitutions.commons.vertx.verticle.StatusVerticle",
+      "main": "com.fazula.server.common.vertx.verticle.StatusVerticle",
       "options": {
         "instances": 1,
         "config": {}
