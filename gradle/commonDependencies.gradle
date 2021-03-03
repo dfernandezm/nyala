@@ -143,4 +143,8 @@ dependencies {
 
     compile 'org.jsoup:jsoup:1.13.1'
 
+    // JAX-B dependencies for JDK 9+
+    compile "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
+    compile "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+
 }

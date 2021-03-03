@@ -34,11 +34,6 @@ wrapper {
     distributionUrl = distributionUrl.replace("bin", "all")
 }
 
-
-if (file('aws.gradle').exists()) {
-    apply from: 'aws.gradle'
-}
-
 apply from: './gradle/commonDependencies.gradle'
 apply from: './gradle/tasks.gradle'
 apply from: './gradle/dockertasks.gradle'
@@ -50,11 +45,11 @@ dependencies {
 }
 compileKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 }
 compileTestKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 }
