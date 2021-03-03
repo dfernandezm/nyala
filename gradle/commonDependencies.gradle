@@ -1,13 +1,5 @@
 repositories {
 
-    maven {
-        url "s3://gradle-repository"
-        credentials(AwsCredentials) {
-            accessKey project.hasProperty('awsAccessKey') ? project.awsAccessKey : System.getenv("GRADLE_S3_REPO_AWS_KEY")
-            secretKey project.hasProperty('awsSecret') ? project.awsSecret : System.getenv("GRADLE_S3_REPO_AWS_SECRET_KEY")
-        }
-    }
-
     mavenLocal()
 
     mavenCentral()
@@ -52,8 +44,6 @@ dependencyManagement {
 }
 
 dependencies {
-    //TrexCommons
-    //compile "com.tesco:commons:$commonsVersion"
 
     //Commons
     compile group: "org.apache.commons", name: "commons-collections4", version: "$commonsCollectionsVersion"
@@ -152,8 +142,5 @@ dependencies {
     compile "io.micronaut:micronaut-inject"
 
     compile 'org.jsoup:jsoup:1.13.1'
-
-
-
 
 }
