@@ -1,9 +1,9 @@
-# TrexSubs
+# Fazula
 
 Status endpoint:
 
-http://localhost:9014/substitution/v1/_status
+http://localhost:9014/_status
 
 Main endpoint:
 
-curl -i -XPOST http://localhost:9014/substitution/v1/substitutes
+curl -i -XPOST http://localhost:9014/channels
