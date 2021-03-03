@@ -1,4 +1,4 @@
-def generatedSources = ['com/tesco/**']
+def generatedSources = ['']
 
 test {
     jacoco {
@@ -7,12 +7,12 @@ test {
 }
 
 jacoco {
-    toolVersion = "0.8.0"
+    toolVersion = "0.8.2"
 }
 
 jacocoTestReport {
     doFirst {
-        classDirectories = fileTree(dir: "${buildDir}/classes/main/").include(generatedSources).exclude("com/tesco/productlist/domain/model/*.class")
+        classDirectories = fileTree(dir: "${buildDir}/classes/main/").include(generatedSources)
     }
 
 }
