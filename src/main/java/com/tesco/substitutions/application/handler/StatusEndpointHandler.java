@@ -17,10 +17,18 @@ public class StatusEndpointHandler {
         routingContext.vertx().eventBus().<JsonObject>rxSend(StatusVerticle.STATUS_ADDRESS, new JsonObject())
                 .subscribe(statusMessage -> {
                     log.info("Successfully status returned");
-                    routingContext.response().setStatusCode(HttpStatus.SC_OK).end(statusMessage.body().encodePrettily());
+
+                    routingContext
+                            .response()
+                            .putHeader("content-type", "application/json")
+                            .setStatusCode(HttpStatus.SC_OK).end(statusMessage.body().encodePrettily());
                 }, error -> {
                     log.error("Status endpoint failure: {}", error.getCause().getMessage());
-                    routingContext.response().setStatusCode(HttpStatus.SC_SERVICE_UNAVAILABLE).end(error.getCause().getMessage());
+                    routingContext
+                            .response()
+                            .putHeader("content-type", "application/json")
+                            .setStatusCode(HttpStatus.SC_SERVICE_UNAVAILABLE)
+                            .end(error.getCause().getMessage());
                 });
     }
 }
