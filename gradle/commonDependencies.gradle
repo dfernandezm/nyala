@@ -58,7 +58,7 @@ dependencies {
     compile "io.vertx:vertx-core:$vertxVersion"
     compile "io.vertx:vertx-web:$vertxVersion"
     compile "io.vertx:vertx-web-client:$vertxVersion"
-    compile "io.vertx:vertx-rx-java:$vertxVersion"
+    compile "io.vertx:vertx-rx-java2:$vertxVersion"
     compile "io.vertx:vertx-service-proxy:$vertxVersion"
     compile "io.vertx:vertx-codegen:$vertxVersion"
     compile "io.vertx:vertx-hazelcast:$vertxVersion"
@@ -122,13 +122,13 @@ dependencies {
     testCompile("io.rest-assured:json-path:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
+
     testCompile(
-            'junit:junit:4.12',
+            'org.hamcrest:hamcrest-all:1.3',
             'org.codehaus.groovy:groovy-all:2.4.4',
-            'org.spockframework:spock-core:1.0-groovy-2.4',
-            'org.assertj:assertj-core:2.0.0',
+            'org.assertj:assertj-core:3.11.1',
+            'org.junit.jupiter:junit-jupiter-api:5.6.3',
             'com.github.kstyrc:embedded-redis:0.6',
-            'de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.47.0',
             'com.github.tomakehurst:wiremock:2.6.0'
     )
 
@@ -146,5 +146,8 @@ dependencies {
     // JAX-B dependencies for JDK 9+
     compile "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
     compile "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+
+    compile 'io.lindstrom:m3u8-parser:0.19'
+
 
 }
