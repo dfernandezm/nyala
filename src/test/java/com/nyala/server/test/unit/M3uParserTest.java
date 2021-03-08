@@ -5,6 +5,7 @@ import com.nyala.server.infrastructure.adapter.m3u.M3uPlaylist;
 import io.lindstrom.m3u8.model.MediaPlaylist;
 import io.lindstrom.m3u8.parser.MediaPlaylistParser;
 import org.apache.commons.io.IOUtils;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -29,6 +30,7 @@ public class M3uParserTest {
         assertThat(m3uPlaylist.isEmpty(), is(true));
     }
 
+    @Ignore("M3u cannot be parsed with m3u8 parser")
     @Test
     public void readPlaylistWithParserTest() throws IOException {
         File file = testHelper.readFile("testdata/samplePlaylist.m3u");

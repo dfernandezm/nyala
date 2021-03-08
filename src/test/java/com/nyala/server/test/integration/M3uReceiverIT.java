@@ -33,21 +33,6 @@ public class M3uReceiverIT {
     }
 
     @Test
-    public void status_endpoint_returns_alive_message() {
-        given().
-                header("Accept-Encoding", "application/json").
-                log().all().
-                when().
-                post("/m3u").
-                then().
-                log().all().
-                assertThat().
-                statusCode(HttpStatus.SC_OK).
-                contentType(ContentType.JSON).
-                body("message", equalTo("alive"));
-    }
-
-    @Test
     public void shouldUploadMultipart() {
         File m3uFile = readFile("testdata/samplePlaylist.m3u");
         given()

@@ -15,7 +15,7 @@ ext {
     commonsCollectionsVersion = '4.1'
     commonsLangVersion = '3.4'
     commonsIoVersion = '2.5'
-    vertxVersion = '3.4.2'
+    vertxVersion = '3.5.4'
     guiceVersion = '4.1.0'
     rxJavaVersion = '2.1.0'
     typesafeVersion = '1.2.1'
