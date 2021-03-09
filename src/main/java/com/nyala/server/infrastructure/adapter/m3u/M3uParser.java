@@ -11,12 +11,15 @@ public class M3uParser {
     // In the spec for HLS (m3u8) is:
     // #EXTINF:<duration>,[<title>]
     // but M3U playlists may use spaces instead of comma
-    // Alternative regex, #EXTINF:(\d+(\.\d+)*|-1)(?:,|\s+)([^,]*),([\w\+\s][^\n]+)
-    public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:,|\\s+)(.*)";
+    // added optional groups (?:...) as the whole title is optional. This should be split
 
+    //TODO: no longer picks tvgData
+    public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:(?:,|\\s+)([^,]*))*(?:,([\\w\\+\\s][^\\n]+))*";
+    // Example: tvg-id="" tvg-name="MOVISTAR+ MARVEL 1" tvg-logo="" group-title="SPANISH"
+    // it will be 1 match per pair with 2 groups each (4 matches, g1: key, g2: value)
+    public static final String TVG_DATA_REGEX = "([\\w\\-]+)=\"([\\w\\s\\+]*)\"";
 
     public M3uPlaylist parse(String m3uText) {
-
         if (!m3uText.startsWith(EXTM3U)) {
             throw new RuntimeException("Invalid playlist -- does not start with base header");
         }

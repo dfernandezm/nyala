@@ -1,10 +1,6 @@
 package com.nyala.server.test.unit;
 
-import com.nyala.server.infrastructure.adapter.m3u.M3uParser;
-import com.nyala.server.infrastructure.adapter.m3u.M3uPlaylist;
-import com.nyala.server.infrastructure.adapter.m3u.M3uTag;
-import com.nyala.server.infrastructure.adapter.m3u.MediaSegmentDuration;
-import com.nyala.server.infrastructure.adapter.m3u.TvgData;
+import com.nyala.server.infrastructure.adapter.m3u.*;
 import io.lindstrom.m3u8.model.MediaPlaylist;
 import io.lindstrom.m3u8.parser.MediaPlaylistParser;
 import org.apache.commons.io.IOUtils;
@@ -15,6 +11,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -96,13 +94,42 @@ public class M3uParserTest {
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);
 
         if (extInfTagMatcher.matches()) {
-            String tvgData = extInfTagMatcher.group(2);
+            String tvgData = extInfTagMatcher.group(3);
 
-            String[] tvgDataParts = tvgData.split(" ");
+            Pattern tvgDataPattern = Pattern.compile(M3uParser.TVG_DATA_REGEX);
+            Matcher tvgDataMatcher = tvgDataPattern.matcher(tvgData.trim());
 
+            TvgData.TvgDataBuilder tvgDataBuilder = TvgData.builder();
+            while (tvgDataMatcher.find()) {
+                String tvgAttrName = tvgDataMatcher.group(1);
+                String tvgAttrValue = tvgDataMatcher.group(2);
+                buildTvgAttribute(tvgDataBuilder, tvgAttrName, tvgAttrValue);
+            }
 
+            return tvgDataBuilder.build();
         }
 
         throw new RuntimeException("EXTINF tag expression is incorrect -- " + extInfWithTvgData);
+    }
+
+    private TvgData.TvgDataBuilder buildTvgAttribute(TvgData.TvgDataBuilder tvgDataBuilder,
+                                                     String tvgAttributeName, String tvgAttributeValue) {
+        if (tvgAttributeName.equals(TvgAttributes.TVG_ID.attrName)) {
+            tvgDataBuilder.tvgId(tvgAttributeValue);
+        }
+
+        if (tvgAttributeName.equals(TvgAttributes.TVG_NAME.attrName)) {
+            tvgDataBuilder.tvgName(tvgAttributeValue);
+        }
+
+        if (tvgAttributeName.equals(TvgAttributes.TVG_LOGO.attrName)) {
+            tvgDataBuilder.tvgLogo(tvgAttributeValue);
+        }
+
+        if (tvgAttributeName.equals(TvgAttributes.GROUP_TITLE.attrName)) {
+            tvgDataBuilder.groupTitle(tvgAttributeValue);
+        }
+
+        return tvgDataBuilder;
     }
 }
