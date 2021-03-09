@@ -11,7 +11,9 @@ public class M3uParser {
     // In the spec for HLS (m3u8) is:
     // #EXTINF:<duration>,[<title>]
     // but M3U playlists may use spaces instead of comma
+    // Alternative regex, #EXTINF:(\d+(\.\d+)*|-1)(?:,|\s+)([^,]*),([\w\+\s][^\n]+)
     public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:,|\\s+)(.*)";
+
 
     public M3uPlaylist parse(String m3uText) {
 
