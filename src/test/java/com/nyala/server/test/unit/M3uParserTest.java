@@ -75,7 +75,8 @@ public class M3uParserTest {
     }
 
     private M3uTag parseExtInfTag(String extInfTag) {
-        Pattern extInfTagPattern = Pattern.compile(M3uParser.EXTINF_TAG_REGEX);
+        M3uParser m3uParser = new M3uParser();
+        Pattern extInfTagPattern = Pattern.compile(m3uParser.extInfRegex());
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfTag);
 
         if (extInfTagMatcher.matches()) {
@@ -91,13 +92,14 @@ public class M3uParserTest {
     }
 
     private TvgData parseTvgData(String extInfWithTvgData) {
-        Pattern extInfTagPattern = Pattern.compile(M3uParser.EXTINF_TAG_REGEX);
+        M3uParser m3uParser = new M3uParser();
+        Pattern extInfTagPattern = Pattern.compile(m3uParser.extInfRegex());
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);
 
         if (extInfTagMatcher.matches()) {
             String tvgData = extInfTagMatcher.group(3);
 
-            Pattern tvgDataPattern = Pattern.compile(M3uParser.TVG_DATA_REGEX);
+            Pattern tvgDataPattern = Pattern.compile(M3uParser.TVG_DATA_ATTRIBUTES_REGEX);
             Matcher tvgDataMatcher = tvgDataPattern.matcher(tvgData.trim());
 
             TvgData.TvgDataBuilder tvgDataBuilder = TvgData.builder();
