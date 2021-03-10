@@ -1,6 +1,11 @@
 package com.nyala.server.test.unit;
 
-import com.nyala.server.infrastructure.adapter.m3u.*;
+import com.nyala.server.infrastructure.adapter.m3u.M3uParser;
+import com.nyala.server.infrastructure.adapter.m3u.M3uPlaylist;
+import com.nyala.server.infrastructure.adapter.m3u.M3uTag;
+import com.nyala.server.infrastructure.adapter.m3u.MediaSegmentDuration;
+import com.nyala.server.infrastructure.adapter.m3u.TvgAttributes;
+import com.nyala.server.infrastructure.adapter.m3u.TvgData;
 import io.lindstrom.m3u8.model.MediaPlaylist;
 import io.lindstrom.m3u8.parser.MediaPlaylistParser;
 import org.apache.commons.io.IOUtils;
@@ -11,8 +16,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,8 +62,6 @@ public class M3uParserTest {
 
     @Test
     public void getsCorrectDurationFromExtInfAsInt() {
-        M3uParser m3uParser = new M3uParser();
-        M3uPlaylist m3uPlaylist = new M3uPlaylist();
         M3uTag m3uTag = parseExtInfTag(EXTINF_INTEGER_DURATION);
         assertThat(m3uTag.duration().asSeconds(), is(-1));
         assertThat(m3uTag.name(), is(M3uTag.EXTINF_TAG_NAME));

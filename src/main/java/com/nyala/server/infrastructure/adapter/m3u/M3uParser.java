@@ -14,7 +14,9 @@ public class M3uParser {
     // added optional groups (?:...) as the whole title is optional. This should be split
 
     //TODO: no longer picks tvgData
-    public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:(?:,|\\s+)([^,]*))*(?:,([\\w\\+\\s][^\\n]+))*";
+
+    public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:,|\\s+)([^,\\n]*)(?:,([\\w\\+\\s][^\\n]+))*";
+    //public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:(?:,|\\s+)([^,]*))*(?:,([\\w\\+\\s][^\\n]+))*";
     // Example: tvg-id="" tvg-name="MOVISTAR+ MARVEL 1" tvg-logo="" group-title="SPANISH"
     // it will be 1 match per pair with 2 groups each (4 matches, g1: key, g2: value)
     public static final String TVG_DATA_REGEX = "([\\w\\-]+)=\"([\\w\\s\\+]*)\"";
