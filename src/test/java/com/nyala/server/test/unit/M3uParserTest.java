@@ -74,6 +74,18 @@ public class M3uParserTest {
         assertThat(tvgData.tvgName(), is("MOVISTAR+ MARVEL 1"));
     }
 
+
+    @Disabled("Cannot use m3u8 parser with m3u")
+    @Test
+    public void parsePlaylistWithParserTest() throws IOException {
+        File file = testHelper.readFile("testdata/samplePlaylist.m3u");
+
+        //TODO: WIP
+    }
+
+
+
+
     private M3uTag parseExtInfTag(String extInfTag) {
         M3uParser m3uParser = new M3uParser();
         Pattern extInfTagPattern = Pattern.compile(m3uParser.extInfRegex());

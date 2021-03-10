@@ -1,6 +1,9 @@
 package com.nyala.server.infrastructure.adapter.m3u;
 
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class M3uParser {
 
@@ -28,7 +31,7 @@ public class M3uParser {
             throw new RuntimeException("Invalid playlist -- does not start with base header");
         }
 
-        //TODO: use builder
+        // use builder
         M3uPlaylist m3uPlaylist = new M3uPlaylist();
 
         Arrays.stream(
@@ -45,7 +48,7 @@ public class M3uParser {
     public M3uPlaylist parseHeader(M3uPlaylist m3uPlaylist, String header) {
 
         // skip top header
-        if (!isTopHeader(header)) {
+        if (!isTopHeader(header) || !isExtInfTag(header)) {
 
         }
 
@@ -57,13 +60,81 @@ public class M3uParser {
     }
 
     private boolean isTopHeader(String header) {
-        return EXTM3U.equals(header.trim());
+        return header.startsWith(EXTM3U);
+    }
+
+    private boolean isExtInfTag(String header) {
+        return header.startsWith(EXTINF_TAG_WITH_COLON);
     }
 
     private boolean isHeader(String m3uLine) {
         return m3uLine.startsWith(TAG_MARKER);
     }
 
+    private M3uTag parseExtInfTag(String extInfTag) {
+        Pattern extInfTagPattern = Pattern.compile(extInfRegex());
+        Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfTag);
+
+        if (extInfTagMatcher.matches()) {
+            String duration = extInfTagMatcher.group(1);
+            MediaSegmentDuration mediaSegmentDuration = MediaSegmentDuration.builder().duration(duration).build();
+            return M3uTag.builder()
+                    .name(M3uTag.EXTINF_TAG_NAME)
+                    .duration(mediaSegmentDuration)
+                    .build();
+        } else {
+            throw new RuntimeException("EXTINF tag expression is incorrect -- " + extInfTag);
+        }
+    }
+
+    private Optional<TvgData> parseTvgData(String extInfWithTvgData) {
+        M3uParser m3uParser = new M3uParser();
+        Pattern extInfTagPattern = Pattern.compile(m3uParser.extInfRegex());
+        Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);
+
+        if (extInfTagMatcher.matches()) {
+            String tvgData = extInfTagMatcher.group(3);
+
+            Pattern tvgDataPattern = Pattern.compile(M3uParser.TVG_DATA_ATTRIBUTES_REGEX);
+            Matcher tvgDataMatcher = tvgDataPattern.matcher(tvgData.trim());
+
+            TvgData.TvgDataBuilder tvgDataBuilder = TvgData.builder();
+            while (tvgDataMatcher.find()) {
+                String tvgAttrName = tvgDataMatcher.group(1);
+                String tvgAttrValue = tvgDataMatcher.group(2);
+                buildTvgAttribute(tvgDataBuilder, tvgAttrName, tvgAttrValue);
+            }
+
+            return Optional.of(tvgDataBuilder.build());
+        } else {
+            // log tvgdata not present
+            return Optional.empty();
+        }
+    }
+
+    private TvgData.TvgDataBuilder buildTvgAttribute(TvgData.TvgDataBuilder tvgDataBuilder,
+                                                     String tvgAttributeName, String tvgAttributeValue) {
+        if (tvgAttributeName.equals(TvgAttributes.TVG_ID.attrName)) {
+            tvgDataBuilder.tvgId(tvgAttributeValue);
+        }
+
+        if (tvgAttributeName.equals(TvgAttributes.TVG_NAME.attrName)) {
+            tvgDataBuilder.tvgName(tvgAttributeValue);
+        }
+
+        if (tvgAttributeName.equals(TvgAttributes.TVG_LOGO.attrName)) {
+            tvgDataBuilder.tvgLogo(tvgAttributeValue);
+        }
+
+        if (tvgAttributeName.equals(TvgAttributes.GROUP_TITLE.attrName)) {
+            tvgDataBuilder.groupTitle(tvgAttributeValue);
+        }
+
+        return tvgDataBuilder;
+    }
+
+
+    // ---- Regex utils for EXTINF ----
     public String optionalNonCapturingGroupOf(String regex) {
         String withOptionalNonCapturing = OPTIONAL_NON_CAPTURING_GROUP.replace("{value}", regex);
         return withOptionalNonCapturing;

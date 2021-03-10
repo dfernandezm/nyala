@@ -12,5 +12,5 @@ public class M3uTag {
     public static String EXTINF_TAG_NAME = "EXTINF";
     private String name;
     private MediaSegmentDuration duration;
-    // TvgData
+    private TvgData tvgData;
 }
