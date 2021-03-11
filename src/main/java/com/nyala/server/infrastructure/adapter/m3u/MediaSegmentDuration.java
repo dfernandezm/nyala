@@ -24,13 +24,14 @@ public class MediaSegmentDuration {
             this.durationAsInt = -1;
             this.duration = null;
         } else {
-            this.duration = Duration.parse(duration);
+            String durationPattern = "PT" + duration + "S";
+            this.duration = Duration.parse(durationPattern);
         }
     }
 
     public int asSeconds() {
-        if (durationAsInt == -1) {
-            return -1;
+        if (durationAsInt != null) {
+            return durationAsInt;
         } else {
             return (int) duration.getSeconds();
         }

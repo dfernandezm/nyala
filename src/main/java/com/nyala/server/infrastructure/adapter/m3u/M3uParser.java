@@ -1,5 +1,7 @@
 package com.nyala.server.infrastructure.adapter.m3u;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -71,7 +73,9 @@ public class M3uParser {
         return m3uLine.startsWith(TAG_MARKER);
     }
 
-    private M3uTag parseExtInfTag(String extInfTag) {
+    // -- tag parser --
+    @VisibleForTesting
+    public M3uTag parseExtInfTag(String extInfTag) {
         Pattern extInfTagPattern = Pattern.compile(extInfRegex());
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfTag);
 
@@ -87,7 +91,10 @@ public class M3uParser {
         }
     }
 
-    private Optional<TvgData> parseTvgData(String extInfWithTvgData) {
+
+     // -- tvg data parser --
+    @VisibleForTesting
+    public Optional<TvgData> parseTvgData(String extInfWithTvgData) {
         M3uParser m3uParser = new M3uParser();
         Pattern extInfTagPattern = Pattern.compile(m3uParser.extInfRegex());
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);

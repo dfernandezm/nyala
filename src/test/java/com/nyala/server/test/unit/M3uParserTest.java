@@ -3,8 +3,6 @@ package com.nyala.server.test.unit;
 import com.nyala.server.infrastructure.adapter.m3u.M3uParser;
 import com.nyala.server.infrastructure.adapter.m3u.M3uPlaylist;
 import com.nyala.server.infrastructure.adapter.m3u.M3uTag;
-import com.nyala.server.infrastructure.adapter.m3u.MediaSegmentDuration;
-import com.nyala.server.infrastructure.adapter.m3u.TvgAttributes;
 import com.nyala.server.infrastructure.adapter.m3u.TvgData;
 import io.lindstrom.m3u8.model.MediaPlaylist;
 import io.lindstrom.m3u8.parser.MediaPlaylistParser;
@@ -16,11 +14,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class M3uParserTest {
 
@@ -62,89 +60,53 @@ public class M3uParserTest {
 
     @Test
     public void getsCorrectDurationFromExtInfAsInt() {
-        M3uTag m3uTag = parseExtInfTag(EXTINF_INTEGER_DURATION);
-        assertThat(m3uTag.duration().asSeconds(), is(-1));
+        M3uParser m3uParser = new M3uParser();
+        Integer negativeDuration = -1;
+
+        M3uTag m3uTag = m3uParser.parseExtInfTag(EXTINF_INTEGER_DURATION);
+
+        assertThat(m3uTag.duration().asSeconds(), is(negativeDuration));
+        assertThat(m3uTag.name(), is(M3uTag.EXTINF_TAG_NAME));
+    }
+
+    @Test
+    public void getsCorrectDurationFromExtInfAsPositiveInt() {
+        M3uParser m3uParser = new M3uParser();
+        Integer expectedDuration = 10;
+        String extinfTag = "#EXTINF:10 tvg-id=\"\", trackName";
+
+        M3uTag m3uTag = m3uParser.parseExtInfTag(extinfTag);
+
+        assertThat(m3uTag.duration().asSeconds(), is(expectedDuration));
         assertThat(m3uTag.name(), is(M3uTag.EXTINF_TAG_NAME));
     }
 
     @Test
     public void getsTvgDataFromExtInfTitle() {
-        TvgData tvgData = parseTvgData(EXTINF_WITH_TVG_DATA);
-        assertThat(tvgData.groupTitle(), is("SPANISH"));
-        assertThat(tvgData.tvgName(), is("MOVISTAR+ MARVEL 1"));
+        // Given
+        M3uParser m3uParser = new M3uParser();
+        String expectedTvgGroupTitle = "SPANISH";
+        String expectedTvgName = "MOVISTAR+ MARVEL 1";
+
+        // When
+        Optional<TvgData> tvgData = m3uParser.parseTvgData(EXTINF_WITH_TVG_DATA);
+
+        // Then
+        TvgData presentTvgData = tvgData.orElseGet(() -> fail("TVG data is not present"));
+        assertThat(presentTvgData.groupTitle(), is(expectedTvgGroupTitle));
+        assertThat(presentTvgData.tvgName(), is(expectedTvgName));
     }
 
 
-    @Disabled("Cannot use m3u8 parser with m3u")
     @Test
     public void parsePlaylistWithParserTest() throws IOException {
-        File file = testHelper.readFile("testdata/samplePlaylist.m3u");
+        String m3uPlaylistString = testHelper.readFileToString("testdata/samplePlaylist.m3u");
 
-        //TODO: WIP
-    }
-
-
-
-
-    private M3uTag parseExtInfTag(String extInfTag) {
         M3uParser m3uParser = new M3uParser();
-        Pattern extInfTagPattern = Pattern.compile(m3uParser.extInfRegex());
-        Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfTag);
+        M3uPlaylist m3uPlaylist = m3uParser.parse(m3uPlaylistString);
 
-        if (extInfTagMatcher.matches()) {
-            String duration = extInfTagMatcher.group(1);
-            MediaSegmentDuration mediaSegmentDuration = MediaSegmentDuration.builder().duration(duration).build();
-            return M3uTag.builder()
-                    .name(M3uTag.EXTINF_TAG_NAME)
-                    .duration(mediaSegmentDuration)
-                    .build();
-        } else {
-            throw new RuntimeException("EXTINF tag expression is incorrect -- " + extInfTag);
-        }
-    }
+        assertThat(m3uPlaylist.isEmpty(), is(false));
+        //assertThat(m3uPlaylist.);
 
-    private TvgData parseTvgData(String extInfWithTvgData) {
-        M3uParser m3uParser = new M3uParser();
-        Pattern extInfTagPattern = Pattern.compile(m3uParser.extInfRegex());
-        Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);
-
-        if (extInfTagMatcher.matches()) {
-            String tvgData = extInfTagMatcher.group(3);
-
-            Pattern tvgDataPattern = Pattern.compile(M3uParser.TVG_DATA_ATTRIBUTES_REGEX);
-            Matcher tvgDataMatcher = tvgDataPattern.matcher(tvgData.trim());
-
-            TvgData.TvgDataBuilder tvgDataBuilder = TvgData.builder();
-            while (tvgDataMatcher.find()) {
-                String tvgAttrName = tvgDataMatcher.group(1);
-                String tvgAttrValue = tvgDataMatcher.group(2);
-                buildTvgAttribute(tvgDataBuilder, tvgAttrName, tvgAttrValue);
-            }
-
-            return tvgDataBuilder.build();
-        }
-
-        throw new RuntimeException("EXTINF tag expression is incorrect -- " + extInfWithTvgData);
-    }
-
-    private TvgData.TvgDataBuilder buildTvgAttribute(TvgData.TvgDataBuilder tvgDataBuilder,
-                                                     String tvgAttributeName, String tvgAttributeValue) {
-        if (tvgAttributeName.equals(TvgAttributes.TVG_ID.attrName)) {
-            tvgDataBuilder.tvgId(tvgAttributeValue);
-        }
-
-        if (tvgAttributeName.equals(TvgAttributes.TVG_NAME.attrName)) {
-            tvgDataBuilder.tvgName(tvgAttributeValue);
-        }
-
-        if (tvgAttributeName.equals(TvgAttributes.TVG_LOGO.attrName)) {
-            tvgDataBuilder.tvgLogo(tvgAttributeValue);
-        }
-
-        if (tvgAttributeName.equals(TvgAttributes.GROUP_TITLE.attrName)) {
-            tvgDataBuilder.groupTitle(tvgAttributeValue);
-        }
-
-        return tvgDataBuilder;
     }
 }
