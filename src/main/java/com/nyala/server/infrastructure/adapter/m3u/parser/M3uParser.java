@@ -1,22 +1,12 @@
 package com.nyala.server.infrastructure.adapter.m3u.parser;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.nyala.server.infrastructure.adapter.m3u.*;
-
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class M3uParser {
 
     public static final String TAG_MARKER = "#";
     public static final String EXTM3U = "#EXTM3U";
-
-    //public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:(?:,|\\s+)([^,]*))*(?:,([\\w\\+\\s][^\\n]+))*";
-    // Example: tvg-id="" tvg-name="MOVISTAR+ MARVEL 1" tvg-logo="" group-title="SPANISH"
-    // it will be 1 match per pair with 2 groups each (4 matches, g1: key, g2: value)
-    public static final String TVG_DATA_ATTRIBUTES_REGEX = "([\\w\\-]+)=\"([\\w\\s\\+]*)\"";
 
     public M3uPlaylist parse(String m3uText) {
         if (!m3uText.startsWith(EXTM3U)) {
@@ -56,7 +46,7 @@ public class M3uParser {
     }
 
     private boolean isExtInfTag(String header) {
-        return header.startsWith(M3uMediaTagParser.EXTINF_TAG_WITH_COLON);
+        return header.startsWith(M3uMediaTagParser.EXTINF_TAG);
     }
 
     private boolean isHeader(String m3uLine) {

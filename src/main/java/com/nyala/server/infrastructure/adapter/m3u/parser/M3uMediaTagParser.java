@@ -10,7 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class M3uMediaTagParser {
-    public static final String EXTINF_TAG_WITH_COLON = "#EXTINF";
+    public static final String EXTINF_TAG = "#EXTINF";
 
     // In the spec for HLS (m3u8) is:
     // #EXTINF:<duration>,[<title>]
@@ -21,6 +21,11 @@ public class M3uMediaTagParser {
     private static final String EXTINF_TITLE_TVG_DATA_PART_REGEX = "([^,\n]*)";
     private static final String EXTINF_TITLE_TRACK_NAME_REGEX = ",([\\w\\+\\s][^,\\n]+)";
     private static final String OPTIONAL_NON_CAPTURING_GROUP = "(?:{value})*";
+
+    //public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:(?:,|\\s+)([^,]*))*(?:,([\\w\\+\\s][^\\n]+))*";
+    // Example: tvg-id="" tvg-name="MOVISTAR+ MARVEL 1" tvg-logo="" group-title="SPANISH"
+    // it will be 1 match per pair with 2 groups each (4 matches, g1: key, g2: value)
+    public static final String TVG_DATA_ATTRIBUTES_REGEX = "([\\w\\-]+)=\"([\\w\\s\\+]*)\"";
 
 
     public M3uMediaTag parseExtInfTag(String extInfTag) {
@@ -45,13 +50,15 @@ public class M3uMediaTagParser {
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);
 
         if (extInfTagMatcher.matches()) {
+            //TODO: may not be present - test
             String tvgData = extInfTagMatcher.group(3);
 
-            Pattern tvgDataPattern = Pattern.compile(M3uParser.TVG_DATA_ATTRIBUTES_REGEX);
+            Pattern tvgDataPattern = Pattern.compile(TVG_DATA_ATTRIBUTES_REGEX);
             Matcher tvgDataMatcher = tvgDataPattern.matcher(tvgData.trim());
 
             TvgData.TvgDataBuilder tvgDataBuilder = TvgData.builder();
             while (tvgDataMatcher.find()) {
+                //TODO: may not be present - test
                 String tvgAttrName = tvgDataMatcher.group(1);
                 String tvgAttrValue = tvgDataMatcher.group(2);
                 buildTvgAttribute(tvgDataBuilder, tvgAttrName, tvgAttrValue);
@@ -59,7 +66,7 @@ public class M3uMediaTagParser {
 
             return Optional.of(tvgDataBuilder.build());
         } else {
-            // log tvgdata not present
+            //TODO: log tvgdata not present - test
             return Optional.empty();
         }
     }
@@ -92,7 +99,7 @@ public class M3uMediaTagParser {
     }
 
     public String extInfRegex() {
-        return EXTINF_TAG_WITH_COLON + ":" +
+        return EXTINF_TAG + ":" +
                 EXTINF_DURATION_REGEX +
                 optionalNonCapturingGroupOf(
                         EXTINF_COMMA_OR_SPACE_REGEX + EXTINF_TITLE_TVG_DATA_PART_REGEX +

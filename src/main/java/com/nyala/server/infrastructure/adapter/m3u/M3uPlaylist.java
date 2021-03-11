@@ -5,6 +5,7 @@ import com.nyala.server.infrastructure.adapter.m3u.parser.M3uParser;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Value;
 import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-@Data
+@Getter
 @Accessors(fluent=true)
 public class M3uPlaylist {
 
