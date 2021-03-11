@@ -1,44 +1,60 @@
 package com.nyala.server.infrastructure.adapter.m3u;
 
+import com.nyala.server.infrastructure.adapter.m3u.parser.M3uMediaTagParser;
+import com.nyala.server.infrastructure.adapter.m3u.parser.M3uParser;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
+@Data
+@Accessors(fluent=true)
 public class M3uPlaylist {
 
-    private M3uMediaTag startTag;
-    private final List<Map<M3uMediaTag, M3uMediaUri>> m3uTagsWithMediaUris = new ArrayList<>();
-    private M3uMediaTag finalTag;
+    private String startTag;
+    private List<M3uPlaylistEntry> entries = new LinkedList<>();
 
-    private M3uPlaylist(Builder builder) {
+    private M3uPlaylist() {
     }
 
     public boolean isEmpty() {
-        return m3uTagsWithMediaUris.isEmpty();
+        return entries.isEmpty();
     }
 
     public static class Builder {
-        private M3uMediaTag startTag;
-        private List<Map<String, M3uMediaUri>> entries = new LinkedList<>();
+        private String startTag;
+        private List<M3uPlaylistEntry> entries = new LinkedList<>();
 
-        public Builder startTag(M3uMediaTag startTag) {
-            this.startTag = startTag;
+        public Builder withStart() {
+            this.startTag = M3uParser.EXTM3U;
             return this;
         }
 
-        public Builder addMediaTag(M3uMediaTag mediaTag, M3uMediaUri mediaUri) {
-            String mediaTagString = mediaTag.toString();
-            Map<String, M3uMediaUri> pair = new LinkedHashMap<>();
-            pair.put(mediaTagString, mediaUri);
-            entries.add(pair);
+        public Builder addMediaEntry(M3uMediaTag mediaTag, M3uMediaUri mediaUri) {
+            M3uPlaylistEntry m3uPlaylistEntry = M3uPlaylistEntry.builder()
+                                                .mediaTag(mediaTag)
+                                                .mediaUri(mediaUri)
+                                                .build();
+            entries.add(m3uPlaylistEntry);
             return this;
         }
 
         public M3uPlaylist build() {
-            return new M3uPlaylist(this);
+            M3uPlaylist m3uPlaylist = new M3uPlaylist();
+
+            if (startTag == null) {
+                throw new RuntimeException("Start tag is mandatory");
+            }
+
+            m3uPlaylist.startTag = startTag;
+            m3uPlaylist.entries = entries;
+            return m3uPlaylist;
         }
     }
 
