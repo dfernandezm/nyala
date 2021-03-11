@@ -1,8 +1,8 @@
 package com.nyala.server.test.unit;
 
-import com.nyala.server.infrastructure.adapter.m3u.M3uParser;
+import com.nyala.server.infrastructure.adapter.m3u.parser.M3uParser;
 import com.nyala.server.infrastructure.adapter.m3u.M3uPlaylist;
-import com.nyala.server.infrastructure.adapter.m3u.M3uTag;
+import com.nyala.server.infrastructure.adapter.m3u.M3uMediaTag;
 import com.nyala.server.infrastructure.adapter.m3u.TvgData;
 import io.lindstrom.m3u8.model.MediaPlaylist;
 import io.lindstrom.m3u8.parser.MediaPlaylistParser;
@@ -23,8 +23,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class M3uParserTest {
 
     private TestHelper testHelper = new TestHelper();
-    private static final String EXTINF_INTEGER_DURATION = "#EXTINF:-1 tvg-id=\"\"";
-    private static final String EXTINF_WITH_TVG_DATA = "#EXTINF:-1 tvg-id=\"\" tvg-name=\"MOVISTAR+ MARVEL 1\" tvg-logo=\"\" group-title=\"SPANISH\",MOVISTAR+ MARVEL 1";
 
     @Test
     public void emptyPlaylistTest() throws IOException {
@@ -59,46 +57,6 @@ public class M3uParserTest {
     }
 
     @Test
-    public void getsCorrectDurationFromExtInfAsInt() {
-        M3uParser m3uParser = new M3uParser();
-        Integer negativeDuration = -1;
-
-        M3uTag m3uTag = m3uParser.parseExtInfTag(EXTINF_INTEGER_DURATION);
-
-        assertThat(m3uTag.duration().asSeconds(), is(negativeDuration));
-        assertThat(m3uTag.name(), is(M3uTag.EXTINF_TAG_NAME));
-    }
-
-    @Test
-    public void getsCorrectDurationFromExtInfAsPositiveInt() {
-        M3uParser m3uParser = new M3uParser();
-        Integer expectedDuration = 10;
-        String extinfTag = "#EXTINF:10 tvg-id=\"\", trackName";
-
-        M3uTag m3uTag = m3uParser.parseExtInfTag(extinfTag);
-
-        assertThat(m3uTag.duration().asSeconds(), is(expectedDuration));
-        assertThat(m3uTag.name(), is(M3uTag.EXTINF_TAG_NAME));
-    }
-
-    @Test
-    public void getsTvgDataFromExtInfTitle() {
-        // Given
-        M3uParser m3uParser = new M3uParser();
-        String expectedTvgGroupTitle = "SPANISH";
-        String expectedTvgName = "MOVISTAR+ MARVEL 1";
-
-        // When
-        Optional<TvgData> tvgData = m3uParser.parseTvgData(EXTINF_WITH_TVG_DATA);
-
-        // Then
-        TvgData presentTvgData = tvgData.orElseGet(() -> fail("TVG data is not present"));
-        assertThat(presentTvgData.groupTitle(), is(expectedTvgGroupTitle));
-        assertThat(presentTvgData.tvgName(), is(expectedTvgName));
-    }
-
-
-    @Test
     public void parsePlaylistWithParserTest() throws IOException {
         String m3uPlaylistString = testHelper.readFileToString("testdata/samplePlaylist.m3u");
 
@@ -106,7 +64,5 @@ public class M3uParserTest {
         M3uPlaylist m3uPlaylist = m3uParser.parse(m3uPlaylistString);
 
         assertThat(m3uPlaylist.isEmpty(), is(false));
-        //assertThat(m3uPlaylist.);
-
     }
 }

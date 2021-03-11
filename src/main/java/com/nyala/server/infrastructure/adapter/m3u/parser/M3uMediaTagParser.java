@@ -1,16 +1,15 @@
-package com.nyala.server.infrastructure.adapter.m3u;
+package com.nyala.server.infrastructure.adapter.m3u.parser;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.nyala.server.infrastructure.adapter.m3u.M3uMediaTag;
+import com.nyala.server.infrastructure.adapter.m3u.MediaSegmentDuration;
+import com.nyala.server.infrastructure.adapter.m3u.TvgAttributes;
+import com.nyala.server.infrastructure.adapter.m3u.TvgData;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class M3uParser {
-
-    public static final String TAG_MARKER = "#";
-    public static final String EXTM3U = "#EXTM3U";
+public class M3uMediaTagParser {
     public static final String EXTINF_TAG_WITH_COLON = "#EXTINF";
 
     // In the spec for HLS (m3u8) is:
@@ -23,67 +22,16 @@ public class M3uParser {
     private static final String EXTINF_TITLE_TRACK_NAME_REGEX = ",([\\w\\+\\s][^,\\n]+)";
     private static final String OPTIONAL_NON_CAPTURING_GROUP = "(?:{value})*";
 
-    //public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:(?:,|\\s+)([^,]*))*(?:,([\\w\\+\\s][^\\n]+))*";
-    // Example: tvg-id="" tvg-name="MOVISTAR+ MARVEL 1" tvg-logo="" group-title="SPANISH"
-    // it will be 1 match per pair with 2 groups each (4 matches, g1: key, g2: value)
-    public static final String TVG_DATA_ATTRIBUTES_REGEX = "([\\w\\-]+)=\"([\\w\\s\\+]*)\"";
 
-    public M3uPlaylist parse(String m3uText) {
-        if (!m3uText.startsWith(EXTM3U)) {
-            throw new RuntimeException("Invalid playlist -- does not start with base header");
-        }
-
-        // use builder
-        M3uPlaylist m3uPlaylist = new M3uPlaylist();
-
-        Arrays.stream(
-                m3uText.split("\n"))
-                .map(String::trim)
-                .map(line -> isHeader(line) ?
-                        parseHeader(m3uPlaylist, line) :
-                        parseLocation(m3uPlaylist, line)
-                );
-
-        return new M3uPlaylist();
-    }
-
-    public M3uPlaylist parseHeader(M3uPlaylist m3uPlaylist, String header) {
-
-        // skip top header
-        if (!isTopHeader(header) || !isExtInfTag(header)) {
-
-        }
-
-        return new M3uPlaylist();
-    }
-
-    public M3uPlaylist parseLocation(M3uPlaylist m3uPlaylist, String location) {
-        return new M3uPlaylist();
-    }
-
-    private boolean isTopHeader(String header) {
-        return header.startsWith(EXTM3U);
-    }
-
-    private boolean isExtInfTag(String header) {
-        return header.startsWith(EXTINF_TAG_WITH_COLON);
-    }
-
-    private boolean isHeader(String m3uLine) {
-        return m3uLine.startsWith(TAG_MARKER);
-    }
-
-    // -- tag parser --
-    @VisibleForTesting
-    public M3uTag parseExtInfTag(String extInfTag) {
+    public M3uMediaTag parseExtInfTag(String extInfTag) {
         Pattern extInfTagPattern = Pattern.compile(extInfRegex());
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfTag);
 
         if (extInfTagMatcher.matches()) {
             String duration = extInfTagMatcher.group(1);
             MediaSegmentDuration mediaSegmentDuration = MediaSegmentDuration.builder().duration(duration).build();
-            return M3uTag.builder()
-                    .name(M3uTag.EXTINF_TAG_NAME)
+            return M3uMediaTag.builder()
+                    .name(M3uMediaTag.EXTINF_TAG_NAME)
                     .duration(mediaSegmentDuration)
                     .build();
         } else {
@@ -91,12 +39,9 @@ public class M3uParser {
         }
     }
 
-
-     // -- tvg data parser --
-    @VisibleForTesting
     public Optional<TvgData> parseTvgData(String extInfWithTvgData) {
-        M3uParser m3uParser = new M3uParser();
-        Pattern extInfTagPattern = Pattern.compile(m3uParser.extInfRegex());
+
+        Pattern extInfTagPattern = Pattern.compile(extInfRegex());
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);
 
         if (extInfTagMatcher.matches()) {
@@ -140,7 +85,6 @@ public class M3uParser {
         return tvgDataBuilder;
     }
 
-
     // ---- Regex utils for EXTINF ----
     public String optionalNonCapturingGroupOf(String regex) {
         String withOptionalNonCapturing = OPTIONAL_NON_CAPTURING_GROUP.replace("{value}", regex);
@@ -155,4 +99,5 @@ public class M3uParser {
                                 optionalNonCapturingGroupOf(EXTINF_TITLE_TRACK_NAME_REGEX)
                 );
     }
+
 }
