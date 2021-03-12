@@ -4,11 +4,13 @@ import com.nyala.server.infrastructure.adapter.m3u.M3uMediaTag;
 import com.nyala.server.infrastructure.adapter.m3u.MediaSegmentDuration;
 import com.nyala.server.infrastructure.adapter.m3u.TvgAttributes;
 import com.nyala.server.infrastructure.adapter.m3u.TvgData;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+// https://www.baeldung.com/kotlin/builder-pattern
+@Slf4j
 public class M3uMediaTagParser {
     public static final String EXTINF_TAG = "#EXTINF";
 
@@ -22,7 +24,6 @@ public class M3uMediaTagParser {
     private static final String EXTINF_TITLE_TRACK_NAME_REGEX = ",([\\w\\+\\s][^,\\n]+)";
     private static final String OPTIONAL_NON_CAPTURING_GROUP = "(?:{value})*";
 
-    //public static final String EXTINF_TAG_REGEX = "#EXTINF:(\\d+(\\.\\d+)*|-1)(?:(?:,|\\s+)([^,]*))*(?:,([\\w\\+\\s][^\\n]+))*";
     // Example: tvg-id="" tvg-name="MOVISTAR+ MARVEL 1" tvg-logo="" group-title="SPANISH"
     // it will be 1 match per pair with 2 groups each (4 matches, g1: key, g2: value)
     public static final String TVG_DATA_ATTRIBUTES_REGEX = "([\\w\\-]+)=\"([\\w\\s\\+]*)\"";
@@ -33,15 +34,36 @@ public class M3uMediaTagParser {
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfTag);
 
         if (extInfTagMatcher.matches()) {
-            String duration = extInfTagMatcher.group(1);
-            MediaSegmentDuration mediaSegmentDuration = MediaSegmentDuration.builder().duration(duration).build();
-            return M3uMediaTag.builder()
-                    .name(M3uMediaTag.EXTINF_TAG_NAME)
-                    .duration(mediaSegmentDuration)
-                    .build();
+
+            M3uMediaTag.M3uMediaTagBuilder extInfTagBuilder = M3uMediaTag.builder()
+                    .name(M3uMediaTag.EXTINF_TAG_NAME);
+
+            if (extInfTagMatcher.groupCount() >= 1) {
+                String matchedDuration = extInfTagMatcher.group(1);
+                durationFrom(extInfTagBuilder, matchedDuration);
+            }
+
+            if (extInfTagMatcher.groupCount() >= 3) {
+                String matchedTvgData = extInfTagMatcher.group(3);
+                tvgDataFrom(extInfTagBuilder, matchedTvgData);
+            }
+
+            return extInfTagBuilder.build();
         } else {
             throw new RuntimeException("EXTINF tag expression is incorrect -- " + extInfTag);
         }
+    }
+
+    private void tvgDataFrom(M3uMediaTag.M3uMediaTagBuilder extInfTagBuilder, String matchedTvgData) {
+        TvgData tvgData = buildTvgData(matchedTvgData);
+        extInfTagBuilder.tvgData(tvgData);
+    }
+
+    private void durationFrom(M3uMediaTag.M3uMediaTagBuilder extInfTagBuilder, String matchedDuration) {
+        MediaSegmentDuration mediaSegmentDuration = MediaSegmentDuration.builder()
+                .duration(matchedDuration)
+                .build();
+        extInfTagBuilder.duration(mediaSegmentDuration);
     }
 
     public Optional<TvgData> parseTvgData(String extInfWithTvgData) {
@@ -51,24 +73,27 @@ public class M3uMediaTagParser {
 
         if (extInfTagMatcher.matches()) {
             //TODO: may not be present - test
-            String tvgData = extInfTagMatcher.group(3);
-
-            Pattern tvgDataPattern = Pattern.compile(TVG_DATA_ATTRIBUTES_REGEX);
-            Matcher tvgDataMatcher = tvgDataPattern.matcher(tvgData.trim());
-
-            TvgData.TvgDataBuilder tvgDataBuilder = TvgData.builder();
-            while (tvgDataMatcher.find()) {
-                //TODO: may not be present - test
-                String tvgAttrName = tvgDataMatcher.group(1);
-                String tvgAttrValue = tvgDataMatcher.group(2);
-                buildTvgAttribute(tvgDataBuilder, tvgAttrName, tvgAttrValue);
-            }
-
-            return Optional.of(tvgDataBuilder.build());
+            String matchedTvgData = extInfTagMatcher.group(3);
+            TvgData tvgData = buildTvgData(matchedTvgData);
+            return Optional.of(tvgData);
         } else {
             //TODO: log tvgdata not present - test
             return Optional.empty();
         }
+    }
+
+    private TvgData buildTvgData(String tvgData) {
+        Pattern tvgDataPattern = Pattern.compile(TVG_DATA_ATTRIBUTES_REGEX);
+        Matcher tvgDataMatcher = tvgDataPattern.matcher(tvgData.trim());
+
+        TvgData.TvgDataBuilder tvgDataBuilder = TvgData.builder();
+        while (tvgDataMatcher.find()) {
+            //TODO: may not be present - test
+            String tvgAttrName = tvgDataMatcher.group(1);
+            String tvgAttrValue = tvgDataMatcher.group(2);
+            buildTvgAttribute(tvgDataBuilder, tvgAttrName, tvgAttrValue);
+        }
+        return tvgDataBuilder.build();
     }
 
     private TvgData.TvgDataBuilder buildTvgAttribute(TvgData.TvgDataBuilder tvgDataBuilder,

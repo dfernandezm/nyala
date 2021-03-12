@@ -7,6 +7,7 @@ public class M3uParser {
 
     public static final String TAG_MARKER = "#";
     public static final String EXTM3U = "#EXTM3U";
+    private final M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
 
     public M3uPlaylist parse(String m3uText) {
         if (!m3uText.startsWith(EXTM3U)) {
@@ -15,7 +16,7 @@ public class M3uParser {
 
         // use builder
         M3uPlaylist.Builder playlistBuilder = M3uPlaylist.builder();
-
+        playlistBuilder.withStart();
         Arrays.stream(
                 m3uText.split("\n"))
                 .map(String::trim)
@@ -30,8 +31,10 @@ public class M3uParser {
     public M3uPlaylist parseHeader(M3uPlaylist.Builder m3uPlaylistBuilder, String header) {
 
         // skip top header
-        if (!isTopHeader(header) || !isExtInfTag(header)) {
+        if (!isTopHeader(header)) {
+            if (isExtInfTag(header)) {
 
+            }
         }
 
         return m3uPlaylistBuilder.build();
