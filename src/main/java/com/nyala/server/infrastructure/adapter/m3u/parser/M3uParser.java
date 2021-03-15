@@ -1,8 +1,15 @@
 package com.nyala.server.infrastructure.adapter.m3u.parser;
 
-import com.nyala.server.infrastructure.adapter.m3u.*;
-import java.util.Arrays;
+import com.nyala.server.infrastructure.adapter.m3u.M3uMediaTag;
+import com.nyala.server.infrastructure.adapter.m3u.M3uMediaUri;
+import com.nyala.server.infrastructure.adapter.m3u.M3uPlaylist;
+import io.lindstrom.m3u8.parser.MediaPlaylistParser;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.Iterator;
+
+@Slf4j
 public class M3uParser {
 
     public static final String TAG_MARKER = "#";
@@ -17,13 +24,36 @@ public class M3uParser {
         // use builder
         M3uPlaylist.Builder playlistBuilder = M3uPlaylist.builder();
         playlistBuilder.withStart();
-        Arrays.stream(
+
+
+        MediaPlaylistParser t;
+
+
+        Iterator<String> m3uLinesIterator = Arrays.stream(
                 m3uText.split("\n"))
-                .map(String::trim)
-                .map(line -> isHeader(line) ?
-                        parseHeader(playlistBuilder, line) :
-                        parseLocation(playlistBuilder, line)
-                );
+                .map(String::trim).iterator();
+
+
+        while (m3uLinesIterator.hasNext()) {
+
+            String line = m3uLinesIterator.next();
+
+            if (isTopHeader(line)) {
+                log.debug("Skipping starting tag");
+            }
+
+            if (isMediaTag(line)) {
+                M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseExtInfTag(line);
+                if (m3uLinesIterator.hasNext()) {
+                    String nextLine = m3uLinesIterator.next();
+                    //TODO: parse it
+                    M3uMediaUri m3uMediaUri = M3uMediaUri.builder().build();
+                    playlistBuilder.addMediaEntry(m3uMediaTag, m3uMediaUri);
+                } else {
+                    throw new RuntimeException("Invalid M3U playlist: media tag not followed by media uri");
+                }
+            }
+        }
 
         return playlistBuilder.build();
     }
@@ -34,7 +64,7 @@ public class M3uParser {
 
         // skip top header
         if (!isTopHeader(header)) {
-            if (isExtInfTag(header)) {
+            if (isMediaTag(header)) {
                 M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseExtInfTag(header);
                 m3uPlaylistBuilder.addMediaEntry(m3uMediaTag, null);
             }
@@ -51,7 +81,7 @@ public class M3uParser {
         return header.startsWith(EXTM3U);
     }
 
-    private boolean isExtInfTag(String header) {
+    private boolean isMediaTag(String header) {
         return header.startsWith(M3uMediaTagParser.EXTINF_TAG);
     }
 

@@ -1,18 +1,12 @@
 package com.nyala.server.infrastructure.adapter.m3u;
 
-import com.nyala.server.infrastructure.adapter.m3u.parser.M3uMediaTagParser;
 import com.nyala.server.infrastructure.adapter.m3u.parser.M3uParser;
-import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
-import lombok.Value;
 import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Accessors(fluent=true)
@@ -26,6 +20,10 @@ public class M3uPlaylist {
 
     public boolean isEmpty() {
         return entries.isEmpty();
+    }
+
+    public Iterator<M3uMediaUri> mediaUriIterator() {
+        return null;
     }
 
     public static class Builder {
