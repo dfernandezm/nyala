@@ -28,12 +28,15 @@ public class M3uParser {
         return playlistBuilder.build();
     }
 
+
+    //TODO: https://stackoverflow.com/questions/34086461/java-stream-is-there-a-way-to-iterate-taking-two-elements-a-time-instead-of-one
     public M3uPlaylist parseHeader(M3uPlaylist.Builder m3uPlaylistBuilder, String header) {
 
         // skip top header
         if (!isTopHeader(header)) {
             if (isExtInfTag(header)) {
-
+                M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseExtInfTag(header);
+                m3uPlaylistBuilder.addMediaEntry(m3uMediaTag, null);
             }
         }
 

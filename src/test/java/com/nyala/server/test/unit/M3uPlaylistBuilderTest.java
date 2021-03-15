@@ -52,7 +52,7 @@ public class M3uPlaylistBuilderTest {
         M3uMediaTag tag = m3uPlaylistEntry.mediaTag();
         M3uMediaUri entryMediaUri = m3uPlaylistEntry.mediaUri();
 
-        assertThat(tag.duration().asSeconds(), is(Integer.parseInt(duration)));
+        assertThat(tag.duration().asIntegerSeconds(), is(Integer.parseInt(duration)));
         assertThat(entryMediaUri.getUrl(), is(mediaUri));
         assertThat(tag.tvgData().groupTitle(), is(groupTitle));
         assertThat(tag.tvgData().tvgId(), is(tvgId));

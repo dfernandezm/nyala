@@ -1,19 +1,20 @@
 package com.nyala.server.test.unit;
 
 import com.nyala.server.infrastructure.adapter.m3u.M3uMediaTag;
-import com.nyala.server.infrastructure.adapter.m3u.TvgData;
 import com.nyala.server.infrastructure.adapter.m3u.parser.M3uMediaTagParser;
-import org.assertj.core.util.Strings;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Stream;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class M3uMediaTagParserTest {
 
@@ -26,8 +27,21 @@ public class M3uMediaTagParserTest {
             "#EXTINF:0 group-title=\"SPANISH\"";
     private static final String EXTINF_MINUS_ONE_DURATION_GROUP_TITLE =
             "#EXTINF:-1,group-title=\"SPANISH\"";
-    private static final String EXINF_MINUS_ONE_UNORDERED_TVG_IGNORED_TRACK_NAME =
+    private static final String EXTINF_MINUS_ONE_UNORDERED_TVG_IGNORED_TRACK_NAME =
             "#EXTINF:-1,group-title=\"SPANISH\" tvg-id=\"\" tvg-name=\"MOVISTAR+ MARVEL 1\",other_track_name";
+
+    private static final String EXTINF_DURATION_ONLY =
+            "#EXTINF:0,,other_track_name";
+
+    private static final String EXTINF_FLOAT_DURATION =
+            "#EXTINF:10.117";
+
+    private static final String EXTINF_NO_TVG =
+            "#EXTINF:0";
+
+    private static final String EXTINF_NO_DURATION =
+            "#EXTINF: group-title=\"SPANISH\" tvg-id=\"\" tvg-name=\"MOVISTAR+ MARVEL 1\",other_track_name";
+
 
     @Test
     public void getsCorrectDurationFromExtInfAsInt() {
@@ -52,41 +66,64 @@ public class M3uMediaTagParserTest {
         assertThat(m3UMediaTag.name(), is(M3uMediaTag.EXTINF_TAG_NAME));
     }
 
+    private static Stream<Arguments> provideExtInfHeaders() {
+        return Stream.of(
+                Arguments.of(EXTINF_WITH_COMPLETE_TVG_DATA, List.of("-1", "SPANISH", "int")),
+                Arguments.of(EXTINF_ZERO_DURATION_TVG_GROUP_TITLE, List.of("0", "SPANISH", "int")),
+                Arguments.of(EXTINF_ZERO_DURATION, List.of("0", "SPANISH", "int")),
+                Arguments.of(EXTINF_MINUS_ONE_DURATION_GROUP_TITLE, List.of("-1", "SPANISH", "int")),
+                Arguments.of(EXTINF_MINUS_ONE_UNORDERED_TVG_IGNORED_TRACK_NAME, List.of("-1", "SPANISH", "int")),
+                Arguments.of(EXTINF_DURATION_ONLY, List.of("0", "null", "int")),
+                Arguments.of(EXTINF_FLOAT_DURATION, List.of("10.117", "null", "float"))
+        );
+    }
+
     @Test
-    public void getsTvgDataFromExtInfTitle() {
-        // Given
+    public void failsIfDurationIsntPresent() {
         M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
-        String expectedTvgGroupTitle = "SPANISH";
-        String expectedTvgName = "MOVISTAR+ MARVEL 1";
 
-        // When
-        Optional<TvgData> tvgData = m3uMediaTagParser.parseTvgData(EXTINF_WITH_COMPLETE_TVG_DATA);
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            m3uMediaTagParser.parseExtInfTag(EXTINF_NO_DURATION);
+        });
 
-        // Then
-        TvgData presentTvgData = tvgData.orElseGet(() -> fail("TVG data is not present"));
-        assertThat(presentTvgData.groupTitle(), is(expectedTvgGroupTitle));
-        assertThat(presentTvgData.tvgName(), is(expectedTvgName));
+        assertThat(thrown.getMessage(), containsString("EXTINF tag expression is incorrect"));
+    }
+
+    @Test
+    public void testTvgDataNotPresent() {
+        M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
+        M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseExtInfTag(EXTINF_NO_TVG);
+        assertThat(m3uMediaTag.tvgData(), is(nullValue()));
+        assertThat(m3uMediaTag.duration().asSeconds(), is(0));
     }
 
     @ParameterizedTest
-    @ValueSource(strings={
-            EXTINF_WITH_COMPLETE_TVG_DATA,
-            EXTINF_MINUS_ONE_DURATION_GROUP_TITLE,
-            EXINF_MINUS_ONE_UNORDERED_TVG_IGNORED_TRACK_NAME
-    })
-    public void parseExtInfTagCorrectly(String validExtInfTag) {
+    @MethodSource("provideExtInfHeaders")
+    public void parseExtInfTagCorrectly(String validExtInfTag, List<String> expected) {
 
         M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
+
+        String groupTitle = expected.get(1);
+        String type = expected.get(2);
+
+        int expectedIntegerDuration = 0;
+        double expectedDoubleDuration =  0D;
+
+        if ("int".equals(type)) {
+            expectedIntegerDuration = Integer.parseInt(expected.get(0));
+        } else {
+            expectedDoubleDuration = Double.parseDouble(expected.get(0));
+        }
 
         M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseExtInfTag(validExtInfTag);
 
-        assertThat(m3uMediaTag.duration().asSeconds(), is(-1));
-        assertThat(m3uMediaTag.tvgData().groupTitle(), is("SPANISH"));
-    }
+        if ("int".equals(type)) {
+            assertThat(m3uMediaTag.duration().asIntegerSeconds(), is(expectedIntegerDuration));
+        } else {
+            assertThat(m3uMediaTag.duration().asSeconds(), is(expectedDoubleDuration));
+        }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"", "  "})
-    void isBlank_ShouldReturnTrueForNullOrBlankStrings(String input) {
-        assertTrue(Strings.isNullOrEmpty(input));
+
+        assertThat(m3uMediaTag.tvgData().groupTitle(), is("null".equals(groupTitle) ? null : groupTitle));
     }
 }

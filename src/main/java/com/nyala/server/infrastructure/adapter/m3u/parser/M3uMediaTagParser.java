@@ -6,7 +6,6 @@ import com.nyala.server.infrastructure.adapter.m3u.TvgAttributes;
 import com.nyala.server.infrastructure.adapter.m3u.TvgData;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 // https://www.baeldung.com/kotlin/builder-pattern
@@ -45,7 +44,11 @@ public class M3uMediaTagParser {
 
             if (extInfTagMatcher.groupCount() >= 3) {
                 String matchedTvgData = extInfTagMatcher.group(3);
-                tvgDataFrom(extInfTagBuilder, matchedTvgData);
+                if (matchedTvgData == null) {
+                    extInfTagBuilder.tvgData(null);
+                } else {
+                    tvgDataFrom(extInfTagBuilder, matchedTvgData);
+                }
             }
 
             return extInfTagBuilder.build();
@@ -66,21 +69,21 @@ public class M3uMediaTagParser {
         extInfTagBuilder.duration(mediaSegmentDuration);
     }
 
-    public Optional<TvgData> parseTvgData(String extInfWithTvgData) {
-
-        Pattern extInfTagPattern = Pattern.compile(extInfRegex());
-        Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);
-
-        if (extInfTagMatcher.matches()) {
-            //TODO: may not be present - test
-            String matchedTvgData = extInfTagMatcher.group(3);
-            TvgData tvgData = buildTvgData(matchedTvgData);
-            return Optional.of(tvgData);
-        } else {
-            //TODO: log tvgdata not present - test
-            return Optional.empty();
-        }
-    }
+//    public Optional<TvgData> parseTvgData(String extInfWithTvgData) {
+//
+//        Pattern extInfTagPattern = Pattern.compile(extInfRegex());
+//        Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);
+//
+//        if (extInfTagMatcher.matches()) {
+//            //TODO: may not be present - test
+//            String matchedTvgData = extInfTagMatcher.group(3);
+//            TvgData tvgData = buildTvgData(matchedTvgData);
+//            return Optional.of(tvgData);
+//        } else {
+//            //TODO: log tvgdata not present - test
+//            return Optional.empty();
+//        }
+//    }
 
     private TvgData buildTvgData(String tvgData) {
         Pattern tvgDataPattern = Pattern.compile(TVG_DATA_ATTRIBUTES_REGEX);

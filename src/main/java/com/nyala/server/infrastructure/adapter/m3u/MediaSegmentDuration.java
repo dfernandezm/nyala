@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import java.time.Duration;
-
 @Accessors(fluent = true)
 public class MediaSegmentDuration {
 
@@ -16,24 +14,42 @@ public class MediaSegmentDuration {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private Integer durationAsInt;
-    private Duration duration;
+    private double durationSeconds;
 
     @Builder
     public MediaSegmentDuration(String duration) {
-        if (MINUS_ONE.equals(duration)) {
-            this.durationAsInt = -1;
-            this.duration = null;
-        } else {
-            String durationPattern = "PT" + duration + "S";
-            this.duration = Duration.parse(durationPattern);
+
+        try {
+            this.durationSeconds = Double.parseDouble(duration);
+            this.durationAsInt = (int) Math.floor(durationSeconds);
+        } catch (NumberFormatException nbe) {
+            throw new RuntimeException("Invalid duration provided", nbe);
         }
+
+//        if (MINUS_ONE.equals(duration)) {
+//            this.durationAsInt = -1;
+//            this.duration = null;
+//        } else {
+//            String durationPattern = "PT" + duration + "S";
+//            this.duration = Duration.parse(durationPattern);
+//        }
     }
 
-    public int asSeconds() {
-        if (durationAsInt != null) {
-            return durationAsInt;
-        } else {
-            return (int) duration.getSeconds();
-        }
+    public double asSeconds() {
+//        if (durationAsInt != null) {
+//            return durationAsInt;
+//        } else {
+//            return (int) duration.getSeconds();
+//        }
+        return durationSeconds;
+    }
+
+    public int asIntegerSeconds() {
+//        if (durationAsInt != null) {
+//            return durationAsInt;
+//        } else {
+//            return (int) duration.getSeconds();
+//        }
+        return durationAsInt;
     }
 }
