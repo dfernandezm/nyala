@@ -23,6 +23,10 @@ public class M3uPlaylist {
     }
 
     public Iterator<M3uMediaUri> mediaUriIterator() {
+        return entries.stream().map(M3uPlaylistEntry::mediaUri).iterator();
+    }
+
+    public Iterator<M3uMediaUri> entriesIterator() {
         return null;
     }
 

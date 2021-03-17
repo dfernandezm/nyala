@@ -48,7 +48,7 @@ public class M3uMediaTagParserTest {
         M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
         Integer negativeDuration = -1;
 
-        M3uMediaTag m3UMediaTag = m3uMediaTagParser.parseExtInfTag(EXTINF_INTEGER_DURATION);
+        M3uMediaTag m3UMediaTag = m3uMediaTagParser.parseMediaTag(EXTINF_INTEGER_DURATION);
 
         assertThat(m3UMediaTag.duration().asSeconds(), is(negativeDuration));
         assertThat(m3UMediaTag.name(), is(M3uMediaTag.EXTINF_TAG_NAME));
@@ -60,7 +60,7 @@ public class M3uMediaTagParserTest {
         Integer expectedDuration = 10;
         String extinfTag = "#EXTINF:10 tvg-id=\"\", trackName";
 
-        M3uMediaTag m3UMediaTag = m3uMediaTagParser.parseExtInfTag(extinfTag);
+        M3uMediaTag m3UMediaTag = m3uMediaTagParser.parseMediaTag(extinfTag);
 
         assertThat(m3UMediaTag.duration().asSeconds(), is(expectedDuration));
         assertThat(m3UMediaTag.name(), is(M3uMediaTag.EXTINF_TAG_NAME));
@@ -83,7 +83,7 @@ public class M3uMediaTagParserTest {
         M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
 
         RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
-            m3uMediaTagParser.parseExtInfTag(EXTINF_NO_DURATION);
+            m3uMediaTagParser.parseMediaTag(EXTINF_NO_DURATION);
         });
 
         assertThat(thrown.getMessage(), containsString("EXTINF tag expression is incorrect"));
@@ -92,7 +92,7 @@ public class M3uMediaTagParserTest {
     @Test
     public void testTvgDataNotPresent() {
         M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
-        M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseExtInfTag(EXTINF_NO_TVG);
+        M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseMediaTag(EXTINF_NO_TVG);
         assertThat(m3uMediaTag.tvgData(), is(nullValue()));
         assertThat(m3uMediaTag.duration().asSeconds(), is(0));
     }
@@ -115,7 +115,7 @@ public class M3uMediaTagParserTest {
             expectedDoubleDuration = Double.parseDouble(expected.get(0));
         }
 
-        M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseExtInfTag(validExtInfTag);
+        M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseMediaTag(validExtInfTag);
 
         if ("int".equals(type)) {
             assertThat(m3uMediaTag.duration().asIntegerSeconds(), is(expectedIntegerDuration));

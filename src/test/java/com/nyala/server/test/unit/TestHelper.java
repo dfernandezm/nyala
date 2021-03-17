@@ -21,7 +21,7 @@ public class TestHelper {
             File file = readFile(filePath);
             return new String(Files.readAllBytes(file.toPath()));
         } catch (Exception e) {
-            fail("Error reading test file " + filePath);
+            fail("Error reading test file " + filePath, e);
             return null;
         }
     }

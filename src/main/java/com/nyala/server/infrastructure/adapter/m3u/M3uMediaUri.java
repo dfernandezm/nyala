@@ -6,5 +6,5 @@ import lombok.Value;
 @Value
 @Builder
 public class M3uMediaUri {
-    private String url;
+    private String uri;
 }

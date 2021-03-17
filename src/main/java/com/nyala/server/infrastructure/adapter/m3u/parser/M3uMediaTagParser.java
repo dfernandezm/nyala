@@ -28,7 +28,7 @@ public class M3uMediaTagParser {
     public static final String TVG_DATA_ATTRIBUTES_REGEX = "([\\w\\-]+)=\"([\\w\\s\\+]*)\"";
 
 
-    public M3uMediaTag parseExtInfTag(String extInfTag) {
+    public M3uMediaTag parseMediaTag(String extInfTag) {
         Pattern extInfTagPattern = Pattern.compile(extInfRegex());
         Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfTag);
 

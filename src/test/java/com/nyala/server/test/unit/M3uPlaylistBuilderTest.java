@@ -35,7 +35,7 @@ public class M3uPlaylistBuilderTest {
                  .tvgData(tvgData)
                  .build();
 
-        M3uMediaUri m3uMediaUri = M3uMediaUri.builder().url(mediaUri).build();
+        M3uMediaUri m3uMediaUri = M3uMediaUri.builder().uri(mediaUri).build();
 
         // When
         builder.withStart()
@@ -53,7 +53,7 @@ public class M3uPlaylistBuilderTest {
         M3uMediaUri entryMediaUri = m3uPlaylistEntry.mediaUri();
 
         assertThat(tag.duration().asIntegerSeconds(), is(Integer.parseInt(duration)));
-        assertThat(entryMediaUri.getUrl(), is(mediaUri));
+        assertThat(entryMediaUri.getUri(), is(mediaUri));
         assertThat(tag.tvgData().groupTitle(), is(groupTitle));
         assertThat(tag.tvgData().tvgId(), is(tvgId));
         assertThat(tag.tvgData().tvgLogo(), is(tvgLogo));

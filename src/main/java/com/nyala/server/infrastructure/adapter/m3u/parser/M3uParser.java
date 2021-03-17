@@ -3,7 +3,6 @@ package com.nyala.server.infrastructure.adapter.m3u.parser;
 import com.nyala.server.infrastructure.adapter.m3u.M3uMediaTag;
 import com.nyala.server.infrastructure.adapter.m3u.M3uMediaUri;
 import com.nyala.server.infrastructure.adapter.m3u.M3uPlaylist;
-import io.lindstrom.m3u8.parser.MediaPlaylistParser;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -21,13 +20,10 @@ public class M3uParser {
             throw new RuntimeException("Invalid playlist -- does not start with base header");
         }
 
-        // use builder
+        M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
+
         M3uPlaylist.Builder playlistBuilder = M3uPlaylist.builder();
         playlistBuilder.withStart();
-
-
-        MediaPlaylistParser t;
-
 
         Iterator<String> m3uLinesIterator = Arrays.stream(
                 m3uText.split("\n"))
@@ -40,15 +36,22 @@ public class M3uParser {
 
             if (isTopHeader(line)) {
                 log.debug("Skipping starting tag");
+                line = m3uLinesIterator.next();
             }
 
             if (isMediaTag(line)) {
-                M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseExtInfTag(line);
+                M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseMediaTag(line);
                 if (m3uLinesIterator.hasNext()) {
-                    String nextLine = m3uLinesIterator.next();
-                    //TODO: parse it
-                    M3uMediaUri m3uMediaUri = M3uMediaUri.builder().build();
-                    playlistBuilder.addMediaEntry(m3uMediaTag, m3uMediaUri);
+                    String mediaUri = m3uLinesIterator.next();
+
+                    if (isMediaUri(mediaUri)) {
+                        M3uMediaUri m3uMediaUri = M3uMediaUri.builder()
+                                .uri(mediaUri)
+                                .build();
+                        playlistBuilder.addMediaEntry(m3uMediaTag, m3uMediaUri);
+                    } else {
+                        throw new RuntimeException("Invalid M3U playlist: media tag not followed by media uri");
+                    }
                 } else {
                     throw new RuntimeException("Invalid M3U playlist: media tag not followed by media uri");
                 }
@@ -65,7 +68,7 @@ public class M3uParser {
         // skip top header
         if (!isTopHeader(header)) {
             if (isMediaTag(header)) {
-                M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseExtInfTag(header);
+                M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseMediaTag(header);
                 m3uPlaylistBuilder.addMediaEntry(m3uMediaTag, null);
             }
         }
@@ -81,8 +84,11 @@ public class M3uParser {
         return header.startsWith(EXTM3U);
     }
 
-    private boolean isMediaTag(String header) {
-        return header.startsWith(M3uMediaTagParser.EXTINF_TAG);
+    private boolean isMediaTag(String mediaTagLine) {
+        return mediaTagLine.startsWith(M3uMediaTagParser.EXTINF_TAG);
+    }
+    private boolean isMediaUri(String mediaUriLine) {
+        return !mediaUriLine.startsWith(TAG_MARKER);
     }
 
     private boolean isHeader(String m3uLine) {
