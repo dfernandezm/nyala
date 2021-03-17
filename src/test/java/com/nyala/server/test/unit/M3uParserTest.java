@@ -17,7 +17,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -87,24 +86,24 @@ public class M3uParserTest {
         List<String> entryOneMedia = List.of("http://u3mPAlw3Gdc6imjH0r.c2e3n4te5r6.me/live/cra4.php?z=997&ui=116740&s=CT4FQCVW5E&id=26325&h=4cf5c6dd7136ef5f736ab45ba93c6dffc726e4ab&n=1614243531");
 
         List<M3uPlaylistEntry> m3uPlaylistEntries = m3uPlaylist.entries();
-        IntStream.range(0, m3uPlaylistEntries.size()).forEach( i -> {
-            M3uPlaylistEntry entry = m3uPlaylistEntries.get(i);
-            List<String> entryValues = entryOneTag.get(i);
-            String expectedDurationStr = entryValues.get(0);
-            MediaSegmentDuration expectedDuration = MediaSegmentDuration.builder()
-                    .duration(expectedDurationStr)
-                    .build();
 
-            String expectedTvgName = entryValues.get(1);
-            String expectedGroupTitle = entryValues.get(2);
+        int i = 0;
 
-            M3uMediaTag m3uMediaTag = entry.mediaTag();
-            M3uMediaUri m3uMediaUri = entry.mediaUri();
-            assertThat(m3uMediaUri, equalTo(entryOneMedia.get(i)));
-            assertThat(m3uMediaTag.duration(), equalTo(expectedDuration));
-            assertThat(m3uMediaTag.tvgData().groupTitle(), equalTo(expectedGroupTitle));
-            assertThat(m3uMediaTag.tvgData().tvgName(), equalTo(expectedTvgName));
+        M3uPlaylistEntry entry = m3uPlaylistEntries.get(i);
+        List<String> entryValues = entryOneTag.get(i);
+        String expectedDurationStr = entryValues.get(0);
+        MediaSegmentDuration expectedDuration = MediaSegmentDuration.builder()
+                .duration(expectedDurationStr)
+                .build();
 
-        });
+        String expectedTvgName = entryValues.get(1);
+        String expectedGroupTitle = entryValues.get(2);
+
+        M3uMediaTag m3uMediaTag = entry.mediaTag();
+        M3uMediaUri m3uMediaUri = entry.mediaUri();
+        assertThat(m3uMediaUri.getUri(), equalTo(entryOneMedia.get(i)));
+        assertThat(m3uMediaTag.duration().asIntegerSeconds(), equalTo(expectedDuration.asIntegerSeconds()));
+        assertThat(m3uMediaTag.tvgData().groupTitle(), equalTo(expectedGroupTitle));
+        assertThat(m3uMediaTag.tvgData().tvgName(), equalTo(expectedTvgName));
     }
 }
