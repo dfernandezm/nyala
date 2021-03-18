@@ -10,7 +10,6 @@ import com.nyala.server.infrastructure.adapter.m3u.parser.M3uParser;
 import io.lindstrom.m3u8.model.MediaPlaylist;
 import io.lindstrom.m3u8.parser.MediaPlaylistParser;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -37,17 +36,18 @@ public class M3uParserTest {
         assertThat(m3uPlaylist.isEmpty(), is(true));
     }
 
-    @Disabled("Cannot use m3u8 parser with m3u")
+    //@Disabled("Cannot use m3u8 parser with m3u")
     @Test
     public void readPlaylistWithParserTest() throws IOException {
         File file = testHelper.readFile("testdata/samplePlaylist.m3u");
+        String m3u = testHelper.readFileToString("testdata/samplePlaylist.m3u");
 
-        // --- transform to conforming list ---
-
+        // transforming to conforming list ---
         MediaPlaylistParser parser = new MediaPlaylistParser();
-
+        m3u = m3u.replace("#EXTM3U\n", "#EXTM3U\n#EXT-X-TARGETDURATION:-1\n");
+        m3u = m3u.replaceAll("#EXTINF:-1 ", "#EXTINF:-1,");
         // Parse playlist
-        MediaPlaylist playlist = parser.readPlaylist(file.toPath());
+        MediaPlaylist playlist = parser.readPlaylist(m3u);
 
         // Update playlist version
         MediaPlaylist updated = MediaPlaylist.builder()
@@ -57,6 +57,8 @@ public class M3uParserTest {
 
         // Write playlist to standard out
         System.out.println(parser.writePlaylistAsString(updated));
+
+        // parser that uses this parser
     }
 
     @Test

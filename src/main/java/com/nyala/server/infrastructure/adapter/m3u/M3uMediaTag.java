@@ -13,4 +13,5 @@ public class M3uMediaTag {
     private String name;
     private MediaSegmentDuration duration;
     private TvgData tvgData;
+    private String trackName;
 }

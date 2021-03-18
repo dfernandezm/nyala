@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -19,14 +20,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class M3uMediaTagParserTest {
 
     private static final String EXTINF_INTEGER_DURATION = "#EXTINF:-1 tvg-id=\"\"";
+
     private static final String EXTINF_WITH_COMPLETE_TVG_DATA =
             "#EXTINF:-1 tvg-id=\"\" tvg-name=\"MOVISTAR+ MARVEL 1\" tvg-logo=\"\" group-title=\"SPANISH\"";
+
     private static final String EXTINF_ZERO_DURATION =
             "#EXTINF:0 tvg-id=\"\" tvg-name=\"MOVISTAR+ MARVEL 1\" tvg-logo=\"\" group-title=\"SPANISH\"";
+
     private static final String EXTINF_ZERO_DURATION_TVG_GROUP_TITLE =
             "#EXTINF:0 group-title=\"SPANISH\"";
+
     private static final String EXTINF_MINUS_ONE_DURATION_GROUP_TITLE =
             "#EXTINF:-1,group-title=\"SPANISH\"";
+
     private static final String EXTINF_MINUS_ONE_UNORDERED_TVG_IGNORED_TRACK_NAME =
             "#EXTINF:-1,group-title=\"SPANISH\" tvg-id=\"\" tvg-name=\"MOVISTAR+ MARVEL 1\",other_track_name";
 
@@ -41,6 +47,14 @@ public class M3uMediaTagParserTest {
 
     private static final String EXTINF_NO_DURATION =
             "#EXTINF: group-title=\"SPANISH\" tvg-id=\"\" tvg-name=\"MOVISTAR+ MARVEL 1\",other_track_name";
+
+    private static final String EXTINF_WITH_NAME_COMPLETE =
+            "#EXTINF:0 tvg-id=\"\" tvg-name=\"MOVISTAR+ MARVEL 1\" tvg-logo=\"\" group-title=\"SPANISH\",MOVISTAR";
+
+    private static final String EXTINF_WITH_NAME_SPACE =
+            "#EXTINF:-1 MOVISTAR";
+    private static final String EXTINF_WITH_NAME_COMMA =
+            "#EXTINF:-1,MOVISTAR";
 
 
     @Test
@@ -67,6 +81,7 @@ public class M3uMediaTagParserTest {
     }
 
     private static Stream<Arguments> provideExtInfHeaders() {
+        // Generator of input -> output for EXTINF headers
         return Stream.of(
                 Arguments.of(EXTINF_WITH_COMPLETE_TVG_DATA, List.of("-1", "SPANISH", "int")),
                 Arguments.of(EXTINF_ZERO_DURATION_TVG_GROUP_TITLE, List.of("0", "SPANISH", "int")),
@@ -94,7 +109,25 @@ public class M3uMediaTagParserTest {
         M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
         M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseMediaTag(EXTINF_NO_TVG);
         assertThat(m3uMediaTag.tvgData(), is(nullValue()));
-        assertThat(m3uMediaTag.duration().asSeconds(), is(0));
+        assertThat(m3uMediaTag.duration().asIntegerSeconds(), is(0));
+    }
+
+    @Test
+    public void testTrackNameIsPresent() {
+        M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
+        M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseMediaTag(EXTINF_WITH_NAME_COMPLETE);
+        assertThat(m3uMediaTag.duration().asIntegerSeconds(), is(0));
+        assertThat(m3uMediaTag.trackName(), is("MOVISTAR"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings={EXTINF_WITH_NAME_COMMA, EXTINF_WITH_NAME_SPACE})
+    public void testTrackNameWithoutTvgData(String extInfValue) {
+        M3uMediaTagParser m3uMediaTagParser = new M3uMediaTagParser();
+        String expectedTrackName = "MOVISTAR";
+        M3uMediaTag m3uMediaTag = m3uMediaTagParser.parseMediaTag(extInfValue);
+        assertThat(m3uMediaTag.duration().asIntegerSeconds(), is(-1));
+        assertThat(m3uMediaTag.trackName(), is("MOVISTAR"));
     }
 
     @ParameterizedTest

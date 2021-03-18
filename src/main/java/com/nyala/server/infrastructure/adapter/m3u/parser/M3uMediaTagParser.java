@@ -6,6 +6,7 @@ import com.nyala.server.infrastructure.adapter.m3u.TvgAttributes;
 import com.nyala.server.infrastructure.adapter.m3u.TvgData;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 // https://www.baeldung.com/kotlin/builder-pattern
@@ -43,11 +44,24 @@ public class M3uMediaTagParser {
             }
 
             if (extInfTagMatcher.groupCount() >= 3) {
-                String matchedTvgData = extInfTagMatcher.group(3);
-                if (matchedTvgData == null) {
+                String matchedTitle = extInfTagMatcher.group(3);
+                if (matchedTitle == null) {
                     extInfTagBuilder.tvgData(null);
+                    extInfTagBuilder.trackName(null);
                 } else {
-                    tvgDataFrom(extInfTagBuilder, matchedTvgData);
+                   Optional<TvgData> maybeTvgData = attemptTvgDataParseFrom(matchedTitle);
+                   if (maybeTvgData.isPresent()) {
+                       extInfTagBuilder.tvgData(maybeTvgData.get());
+                   } else {
+                       extInfTagBuilder.trackName(matchedTitle);
+                   }
+                }
+            }
+
+            if (extInfTagMatcher.groupCount() >= 4) {
+                String matchedTrackName = extInfTagMatcher.group(4);
+                if (matchedTrackName != null){
+                    extInfTagBuilder.trackName(matchedTrackName);
                 }
             }
 
@@ -57,9 +71,9 @@ public class M3uMediaTagParser {
         }
     }
 
-    private void tvgDataFrom(M3uMediaTag.M3uMediaTagBuilder extInfTagBuilder, String matchedTvgData) {
-        TvgData tvgData = buildTvgData(matchedTvgData);
-        extInfTagBuilder.tvgData(tvgData);
+    private Optional<TvgData> attemptTvgDataParseFrom(String matchedTvgData) {
+        Optional<TvgData> tvgData = buildTvgData(matchedTvgData);
+        return tvgData;
     }
 
     private void durationFrom(M3uMediaTag.M3uMediaTagBuilder extInfTagBuilder, String matchedDuration) {
@@ -69,34 +83,23 @@ public class M3uMediaTagParser {
         extInfTagBuilder.duration(mediaSegmentDuration);
     }
 
-//    public Optional<TvgData> parseTvgData(String extInfWithTvgData) {
-//
-//        Pattern extInfTagPattern = Pattern.compile(extInfRegex());
-//        Matcher extInfTagMatcher = extInfTagPattern.matcher(extInfWithTvgData);
-//
-//        if (extInfTagMatcher.matches()) {
-//            //TODO: may not be present - test
-//            String matchedTvgData = extInfTagMatcher.group(3);
-//            TvgData tvgData = buildTvgData(matchedTvgData);
-//            return Optional.of(tvgData);
-//        } else {
-//            //TODO: log tvgdata not present - test
-//            return Optional.empty();
-//        }
-//    }
-
-    private TvgData buildTvgData(String tvgData) {
+    private Optional<TvgData> buildTvgData(String tvgData) {
         Pattern tvgDataPattern = Pattern.compile(TVG_DATA_ATTRIBUTES_REGEX);
         Matcher tvgDataMatcher = tvgDataPattern.matcher(tvgData.trim());
 
+        if (!tvgDataMatcher.matches()) {
+            return Optional.empty();
+        }
+
         TvgData.TvgDataBuilder tvgDataBuilder = TvgData.builder();
+
         while (tvgDataMatcher.find()) {
-            //TODO: may not be present - test
             String tvgAttrName = tvgDataMatcher.group(1);
             String tvgAttrValue = tvgDataMatcher.group(2);
             buildTvgAttribute(tvgDataBuilder, tvgAttrName, tvgAttrValue);
         }
-        return tvgDataBuilder.build();
+
+        return Optional.of(tvgDataBuilder.build());
     }
 
     private TvgData.TvgDataBuilder buildTvgAttribute(TvgData.TvgDataBuilder tvgDataBuilder,
