@@ -1,28 +1,28 @@
 package com.nyala.server.test.integration;
 
 import io.restassured.http.ContentType;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import org.apache.http.HttpStatus;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.FileNotFoundException;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-@RunWith(VertxUnitRunner.class)
+@ExtendWith(VertxExtension.class)
 public class StatusRestIT {
 
-    @BeforeClass
-    public static void beforeAllTests(final TestContext context) throws FileNotFoundException {
-        IntegrationTestHelper.configureTestSuite(context);
+    @BeforeAll
+    public void beforeAllTests(VertxTestContext vertxTestContext) throws FileNotFoundException {
+        //VertxTestContext vertxTestContext = new VertxTestContext();
+        IntegrationTestHelper.configureTestSuite(vertxTestContext);
     }
-
-// TODO add a test for redis down?
 
     @AfterClass
     public static void tearDown() {
@@ -30,17 +30,19 @@ public class StatusRestIT {
     }
 
     @Test
-    public void status_endpoint_returns_alive_message() {
-        given().
-                header("Accept-Encoding", "application/json").
-                log().all().
-                when().
-                get("/_status").
-                then().
-                log().all().
-                assertThat().
-                statusCode(HttpStatus.SC_OK).
-                contentType(ContentType.JSON).
-                body("message", equalTo("alive"));
+    void status_endpoint_returns_alive_message(Vertx vertx, VertxTestContext vertxTestContext) {
+        vertxTestContext.verify(() -> {
+            given().
+                    header("Accept-Encoding", "application/json").
+                    log().all().
+                    when().
+                    get("/_status").
+                    then().
+                    log().all().
+                    assertThat().
+                    statusCode(HttpStatus.SC_OK).
+                    contentType(ContentType.JSON).
+                    body("message", equalTo("alive"));
+        });
     }
 }

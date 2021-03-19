@@ -54,7 +54,7 @@ dependencies {
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: "$apacheHttpVersion"
 
     //Vertx
-    compile "io.vertx:vertx-unit:$vertxVersion"
+    // compile "io.vertx:vertx-unit:$vertxVersion"
     compile "io.vertx:vertx-core:$vertxVersion"
     compile "io.vertx:vertx-web:$vertxVersion"
     compile "io.vertx:vertx-web-client:$vertxVersion"
@@ -107,12 +107,12 @@ dependencies {
     testCompile("org.mockito:mockito-all:$mockitoVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
-    testCompile("io.vertx:vertx-unit:$vertxVersion") {
+    testCompile("io.vertx:vertx-junit5:$vertxVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
-    testCompile("io.vertx:vertx-core:test-jar$vertxVersion") {
-        exclude group: 'org.hamcrest', module: 'hamcrest-all'
-    }
+//    testCompile("io.vertx:vertx-core:test-jar$vertxVersion") {
+//        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+//    }
     testCompile("io.rest-assured:rest-assured:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
