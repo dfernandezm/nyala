@@ -39,7 +39,6 @@ public class M3uParserTest {
     //@Disabled("Cannot use m3u8 parser with m3u")
     @Test
     public void readPlaylistWithParserTest() throws IOException {
-        File file = testHelper.readFile("testdata/samplePlaylist.m3u");
         String m3u = testHelper.readFileToString("testdata/samplePlaylist.m3u");
 
         // transforming to conforming list ---

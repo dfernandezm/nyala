@@ -11,12 +11,12 @@ import io.vertx.rxjava.redis.RedisClient;
 import javax.inject.Singleton;
 
 @Factory
-public class FazulaConfig {
+public class NyalaConfig {
 
     private final Vertx vertx;
     private final Context context;
 
-    public FazulaConfig(Vertx vertx) {
+    public NyalaConfig(Vertx vertx) {
         this.vertx = vertx;
         this.context = vertx.getOrCreateContext();
     }

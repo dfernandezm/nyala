@@ -4,7 +4,7 @@ package com.nyala.server.application.verticle;
 import com.nyala.server.application.handler.StatusEndpointHandler;
 import com.nyala.server.common.shutdown.ShutdownUtils;
 import com.nyala.server.domain.model.Channel;
-import com.nyala.server.infrastructure.config.FazulaConfig;
+import com.nyala.server.infrastructure.config.NyalaConfig;
 import io.micronaut.context.BeanContext;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServerOptions;
@@ -44,7 +44,7 @@ public class ChannelsVerticle extends AbstractVerticle {
     }
 
     private void populateBeanContext(BeanContext beanContext) {
-        beanContext.registerSingleton(new FazulaConfig(this.vertx), true);
+        beanContext.registerSingleton(new NyalaConfig(this.vertx), true);
     }
 
     private void startHttpServer(final Future<Void> startFuture) {

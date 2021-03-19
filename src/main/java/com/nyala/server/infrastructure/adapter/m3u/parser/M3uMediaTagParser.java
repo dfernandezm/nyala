@@ -26,7 +26,8 @@ public class M3uMediaTagParser {
 
     // Example: tvg-id="" tvg-name="MOVISTAR+ MARVEL 1" tvg-logo="" group-title="SPANISH"
     // it will be 1 match per pair with 2 groups each (4 matches, g1: key, g2: value)
-    public static final String TVG_DATA_ATTRIBUTES_REGEX = "([\\w\\-]+)=\"([\\w\\s\\+]*)\"";
+    public static final String TVG_DATA_ATTRIBUTES_REGEX = "(?:([\\w\\-]+)=\"([\\w\\s\\+]*)\")+";
+    public static final String TVG_DATA_REGEX = "(?:([\\w\\-]+)=\"([\\w\\s\\+]*)\"\\s)+";
 
 
     public M3uMediaTag parseMediaTag(String extInfTag) {
@@ -87,19 +88,20 @@ public class M3uMediaTagParser {
         Pattern tvgDataPattern = Pattern.compile(TVG_DATA_ATTRIBUTES_REGEX);
         Matcher tvgDataMatcher = tvgDataPattern.matcher(tvgData.trim());
 
-        if (!tvgDataMatcher.matches()) {
-            return Optional.empty();
-        }
-
         TvgData.TvgDataBuilder tvgDataBuilder = TvgData.builder();
-
+        boolean foundTvg = false;
         while (tvgDataMatcher.find()) {
+            foundTvg = true;
             String tvgAttrName = tvgDataMatcher.group(1);
             String tvgAttrValue = tvgDataMatcher.group(2);
             buildTvgAttribute(tvgDataBuilder, tvgAttrName, tvgAttrValue);
         }
 
-        return Optional.of(tvgDataBuilder.build());
+        if (foundTvg) {
+            return Optional.of(tvgDataBuilder.build());
+        } else {
+            return Optional.empty();
+        }
     }
 
     private TvgData.TvgDataBuilder buildTvgAttribute(TvgData.TvgDataBuilder tvgDataBuilder,
