@@ -21,7 +21,7 @@ public class StatusRestIT {
     @BeforeAll
     public void beforeAllTests(VertxTestContext vertxTestContext) throws FileNotFoundException {
         //VertxTestContext vertxTestContext = new VertxTestContext();
-        IntegrationTestHelper.configureTestSuite(vertxTestContext);
+        //IntegrationTestHelper.configureTestSuite(vertxTestContext);
     }
 
     @AfterClass

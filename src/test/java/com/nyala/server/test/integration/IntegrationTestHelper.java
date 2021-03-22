@@ -6,6 +6,7 @@ import io.restassured.config.LogConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.redis.RedisOptions;
 import io.vertx.rxjava.core.Vertx;
@@ -16,6 +17,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class IntegrationTestHelper {
 
@@ -29,8 +31,9 @@ public class IntegrationTestHelper {
     private static final String REDIS_CONFIGURATION_KEY = "redisConfiguration";
     private static Vertx vertx;
 
-    public static void configureTestSuite(VertxTestContext context) throws FileNotFoundException {
+    public static void configureTestSuite(VertxTestContext context, Supplier<Void> supplier) throws FileNotFoundException {
         configureRestAssuredLog();
+        Checkpoint serverStarted = context.checkpoint();
 
         vertx = Vertx.vertx();
 
@@ -48,9 +51,8 @@ public class IntegrationTestHelper {
                 vertx.deployVerticle(MainStarter.class.getName(), options,
                         ar -> {
                             if (ar.succeeded()) {
-                                context.completeNow();
                                 saveDeploymentIds(vertx.deploymentIDs());
-
+                                supplier.get();
                             } else {
                                 context.failNow(ar.cause());
                             }
