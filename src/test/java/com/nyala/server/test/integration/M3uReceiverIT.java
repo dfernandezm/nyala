@@ -4,7 +4,7 @@ import com.nyala.server.test.unit.TestHelper;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -20,9 +20,12 @@ class M3uReceiverIT {
 
     private TestHelper testHelper = new TestHelper();
 
-    @BeforeEach
-    public void setup() throws FileNotFoundException {
-        //IntegrationTestHelper.configureTestSuite(testContext);
+    @BeforeAll
+    public static void setup() throws FileNotFoundException, InterruptedException {
+        VertxTestContext vertxTestContext = new VertxTestContext();
+        IntegrationTestHelper.configureTestSuite(vertxTestContext);
+        //TODO: https://vertx.io/blog/unit-and-integration-tests/#hey-we-dont-have-integration-tests-
+        Thread.sleep(5000);
     }
 
     @AfterEach
@@ -32,17 +35,12 @@ class M3uReceiverIT {
 
     // https://livebook.manning.com/book/vertx-in-action/chapter-8
     @Test
-    void shouldUploadMultipart(VertxTestContext testContext) throws FileNotFoundException {
-        IntegrationTestHelper.configureTestSuite(testContext, () -> {
+    void shouldUploadMultipart() throws FileNotFoundException {
             File m3uFile = testHelper.readFile("testdata/samplePlaylist.m3u");
             given()
                     .multiPart("file", m3uFile)
                     .expect().statusCode(201)
                     .when()
                     .post("/m3u");
-            testContext.completeNow();
-            return null;
-        });
-
     }
 }

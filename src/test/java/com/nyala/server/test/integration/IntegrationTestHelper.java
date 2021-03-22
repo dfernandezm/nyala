@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class IntegrationTestHelper {
 
@@ -31,7 +30,7 @@ public class IntegrationTestHelper {
     private static final String REDIS_CONFIGURATION_KEY = "redisConfiguration";
     private static Vertx vertx;
 
-    public static void configureTestSuite(VertxTestContext context, Supplier<Void> supplier) throws FileNotFoundException {
+    public static void configureTestSuite(VertxTestContext context) throws FileNotFoundException {
         configureRestAssuredLog();
         Checkpoint serverStarted = context.checkpoint();
 
@@ -52,7 +51,7 @@ public class IntegrationTestHelper {
                         ar -> {
                             if (ar.succeeded()) {
                                 saveDeploymentIds(vertx.deploymentIDs());
-                                supplier.get();
+                                context.completeNow();
                             } else {
                                 context.failNow(ar.cause());
                             }
