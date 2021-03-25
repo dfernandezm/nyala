@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class IntegrationTestHelper {
 
@@ -30,7 +31,17 @@ public class IntegrationTestHelper {
     private static final String REDIS_CONFIGURATION_KEY = "redisConfiguration";
     private static Vertx vertx;
 
-    public static void configureTestSuite(VertxTestContext context) throws FileNotFoundException {
+    public static void configureIntegrationTest() {
+        VertxTestContext vertxTestContext = new VertxTestContext();
+        deployVerticlesWithHttpServer(vertxTestContext);
+        try {
+            vertxTestContext.awaitCompletion(5, TimeUnit.SECONDS);
+        } catch (InterruptedException ie) {
+            throw new RuntimeException("Interrupted while waiting for integration test setup", ie);
+        }
+    }
+
+    private static void deployVerticlesWithHttpServer(VertxTestContext context) {
         configureRestAssuredLog();
         Checkpoint serverStarted = context.checkpoint();
 
@@ -68,10 +79,14 @@ public class IntegrationTestHelper {
         RestAssured.port = options.getConfig().getInteger(HTTP_PORT_KEY);
     }
 
-    private static void configureRestAssuredLog() throws FileNotFoundException {
-        final PrintStream fileOutPutStream = new PrintStream(new File(RESTASSURED_LOG_FILENAME));
-        RestAssured.config = RestAssuredConfig.config()
-                .logConfig(new LogConfig().defaultStream(fileOutPutStream));
+    private static void configureRestAssuredLog() {
+        try  {
+            final PrintStream fileOutPutStream = new PrintStream(new File(RESTASSURED_LOG_FILENAME));
+            RestAssured.config = RestAssuredConfig.config()
+                    .logConfig(new LogConfig().defaultStream(fileOutPutStream));
+        } catch (FileNotFoundException fnfe) {
+            throw new RuntimeException("Failed RestAssured Config", fnfe);
+        }
     }
 
     private static void saveDeploymentIds(final Set<String> deploymentIDs) {
@@ -84,7 +99,7 @@ public class IntegrationTestHelper {
         return RedisClient.create(vertx, redisOptions);
     }
 
-    public static void tearDownTestSuite() {
+    public static void tearDownIntegrationTest() {
         RestAssured.reset();
         undeployVerticles();
         waitUntilVertxContextIsClosed();
