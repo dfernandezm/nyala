@@ -4,6 +4,8 @@ package com.nyala.server.application.verticle;
 import com.nyala.server.application.handler.StatusEndpointHandler;
 import com.nyala.server.common.shutdown.ShutdownUtils;
 import com.nyala.server.domain.model.Channel;
+import com.nyala.server.infrastructure.adapter.m3u.M3uPlaylist;
+import com.nyala.server.infrastructure.adapter.m3u.parser.M3uParser;
 import com.nyala.server.infrastructure.config.NyalaConfig;
 import io.micronaut.context.BeanContext;
 import io.vertx.core.Future;
@@ -103,7 +105,10 @@ public class ChannelsVerticle extends AbstractVerticle {
 
         readUploadedM3uPlaylist(fileUpload)
                 .subscribe( result -> {
+                    M3uParser m3uParser = new M3uParser();
+                    M3uPlaylist m3uPlaylist = m3uParser.parse(result);
                     log.info("Result " + result);
+                    log.info("M3u8 " + m3uPlaylist.entries());
                     response.setStatusCode(201).end(result);
                 });
 
