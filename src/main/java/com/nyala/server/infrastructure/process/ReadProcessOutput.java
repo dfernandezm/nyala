@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class ReadProcessOutput implements OutputReaderCommand<String> {
+public class ReadProcessOutput implements OutputReaderCommand {
 
     private final ProcessBuilder processBuilder;
     private Process process;

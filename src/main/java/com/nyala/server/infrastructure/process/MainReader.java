@@ -4,11 +4,11 @@ import java.util.List;
 
 public class MainReader {
     public static void main(String[] args) throws InterruptedException {
-        byteArrayReader();
+        stringReader();
     }
 
     private static void byteArrayReader() throws InterruptedException {
-        OutputReaderCommand<byte[]> outputCmd = new ByteArrayReactiveReader(List.of("ping", "google.com"));
+        OutputReaderCommand outputCmd = new ByteArrayReactiveReader(List.of("ping", "google.com"));
         outputCmd.execute().subscribe(
                 (input) -> System.out.println("Input: " + input),
                 (error) -> System.out.println("Error: " + error),
@@ -20,7 +20,7 @@ public class MainReader {
     }
 
     private static void stringReader() throws InterruptedException {
-        OutputReaderCommand<String> outputCmd = new StringOutputReactiveReader(List.of("ping", "google.com"));
+        OutputReaderCommand outputCmd = new StringOutputReactiveReader(List.of("ping", "google.com"));
         outputCmd.execute().subscribe(
                 (input) -> System.out.println("Input: " + input),
                 (error) -> System.out.println("Error: " + error),

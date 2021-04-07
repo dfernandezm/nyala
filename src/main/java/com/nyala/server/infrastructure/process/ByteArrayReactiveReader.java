@@ -54,7 +54,7 @@ public class ByteArrayReactiveReader extends ProcessOutputReactiveReader<byte[]>
 
     @Override
     public Observable<byte[]> execute() {
-        startAsync();
+        super.startAsync();
         return this.processInputs;
     }
 }

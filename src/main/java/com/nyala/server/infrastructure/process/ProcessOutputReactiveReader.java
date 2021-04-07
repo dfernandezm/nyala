@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public abstract class ProcessOutputReactiveReader<T> implements OutputReaderCommand<T> {
+public abstract class ProcessOutputReactiveReader<T> implements OutputReaderCommand {
 
     private final ProcessBuilder processBuilder;
     private Process process;
@@ -28,7 +28,7 @@ public abstract class ProcessOutputReactiveReader<T> implements OutputReaderComm
         executorService.submit(this::startProcess);
     }
 
-    public void startSync() {
+    protected void startSync() {
         startProcess();
     }
 
@@ -66,24 +66,5 @@ public abstract class ProcessOutputReactiveReader<T> implements OutputReaderComm
 
     private void readErrorStream(Process process) {
        executorService.submit(() -> readErrorStream(process.getErrorStream()));
-    }
-
-    public static void main(String[] args) throws Exception {
-//        AbstractReadProcessOutput process = new AbstractReadProcessOutput(List.of("ping", "google.com"));
-//        process.startAsync();
-
-//        process.getInputs().subscribe(
-//                (input) -> System.out.println("Input: " + input),
-//                (error) -> System.out.println("Error: " + error),
-//                () -> System.out.println("Completed")
-//        );
-
-//        process.execute().map(el -> el.replace("bytes","")).subscribe(
-//                (input) -> System.out.println("Input: " + input),
-//                (error) -> {},
-//                () -> System.out.println("Completed"));
-
-        Thread.sleep(10000);
-       // process.cancel();
     }
 }
