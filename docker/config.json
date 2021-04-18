@@ -11,6 +11,13 @@
   },
   "verticles": [
     {
+      "main": "com.nyala.server.application.verticle.HttpServerVerticle",
+      "options": {
+        "instances": 1,
+        "config": {}
+      }
+    },
+    {
       "main": "com.nyala.server.application.verticle.ChannelsVerticle",
       "options": {
         "instances": 1,

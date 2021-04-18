@@ -34,6 +34,7 @@ ext {
     apacheHttpVersion='4.5'
     cglibVersion = '3.2.7'
     commonsVersion = '1.2.5'
+    koin_version = "3.0.1"
 
 }
 
@@ -150,5 +151,13 @@ dependencies {
     compile 'io.lindstrom:m3u8-parser:0.19'
 
     testCompile("org.junit.jupiter:junit-jupiter-params:5.7.0")
+
+    // Koin for JUnit 4
+    testCompile "io.insert-koin:koin-test-junit4:$koin_version"
+    // Koin for JUnit 5
+    testCompile "io.insert-koin:koin-test-junit5:$koin_version"
+    // Koin Extended & experimental features (JVM)
+    compile "io.insert-koin:koin-core-ext:$koin_version"
+    compile "io.insert-koin:koin-core:$koin_version"
 
 }
