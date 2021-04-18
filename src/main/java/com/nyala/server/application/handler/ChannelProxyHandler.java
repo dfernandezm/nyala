@@ -5,7 +5,6 @@ import io.vertx.rxjava.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
-import javax.inject.Singleton;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -17,7 +16,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 @Slf4j
-@Singleton
 public class ChannelProxyHandler {
 
     public void proxy(final RoutingContext routingContext) {

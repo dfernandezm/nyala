@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LoggerHandler implements Handler<RoutingContext> {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggerHandler.class);
     private Map<String, String> requestIdToUid = new ConcurrentHashMap();
     private static volatile ConcurrentHashMap<String, String> requestsMap = new ConcurrentHashMap();
