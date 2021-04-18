@@ -112,7 +112,7 @@ public class ErrorHelper {
         if (cause instanceof ApiErrorException) {
             ApiErrorException apiErrorException = (ApiErrorException)cause;
             errorMessage = apiErrorException.getMessage();
-            responseStatus = apiErrorException.getResponseStatus();
+            responseStatus = apiErrorException.responseStatus;
         } else if (cause instanceof DecodeException) {
             errorMessage = cause.getMessage();
             responseStatus = HttpResponseStatus.BAD_REQUEST;

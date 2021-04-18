@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 public class ObservableHelper {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ObservableHelper.class);
     private static final Integer OPERATION_TIMEOUT = 5000;
     private static final Integer MAX_RETRIES = 3;
