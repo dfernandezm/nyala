@@ -21,16 +21,18 @@ class ChannelsVerticle: io.vertx.reactivex.core.AbstractVerticle(), KoinComponen
             val channelId = m.body().getString("channelId")
             log.info("Received channel {}", channelId)
             m.reply(handleGetChannels(channelId))
-            //TODO: message.fail on error
+            m.rxReply<JsonObject>(handleGetChannels(channelId))
+                    .subscribe( {
+                        log.info("channels successfully recovered")
+                    }, {
+                        m.fail(1, "Error getting channels")
+                    })
         }
     }
 
     private fun handleGetChannels(channelId: String): JsonObject {
         log.info("ChannelId", channelId)
-        val channel = Channel.builder()
-                .country("ES")
-                .name("Cuatro HD")
-                .build()
+        val channel = Channel(name = "Cuatro HD", country = "ES")
         return JsonObject().put("channel", JsonObject.mapFrom(channel))
     }
 }

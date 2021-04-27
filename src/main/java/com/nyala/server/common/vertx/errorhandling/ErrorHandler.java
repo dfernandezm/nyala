@@ -25,7 +25,7 @@ public class ErrorHandler {
         if (cause instanceof ApiErrorException) {
             ApiErrorException apiErrorException = (ApiErrorException)cause;
             errorMessage = getDefaultErrorMessageWithoutBreakLines(apiErrorException);
-            responseStatus = apiErrorException.responseStatus;
+            responseStatus = apiErrorException.getResponseStatus();
         } else if (cause instanceof DecodeException) {
             errorMessage = getDefaultErrorMessageWithoutBreakLines(cause);
             responseStatus = HttpResponseStatus.BAD_REQUEST;
