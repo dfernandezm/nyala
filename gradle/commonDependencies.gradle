@@ -111,9 +111,7 @@ dependencies {
     testCompile("io.vertx:vertx-junit5:$vertxVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
-//    testCompile("io.vertx:vertx-core:test-jar$vertxVersion") {
-//        exclude group: 'org.hamcrest', module: 'hamcrest-all'
-//    }
+
     testCompile("io.rest-assured:rest-assured:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
@@ -159,5 +157,13 @@ dependencies {
     // Koin Extended & experimental features (JVM)
     compile "io.insert-koin:koin-core-ext:$koin_version"
     compile "io.insert-koin:koin-core:$koin_version"
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib"
+    compile 'com.google.api-client:google-api-client:1.23.0'
+    compile 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
+    compile 'com.google.apis:google-api-services-gmail:v1-rev83-1.23.0'
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.0-M1'
+
+
 
 }
