@@ -17,6 +17,7 @@ plugins {
     id "java"
     id "net.ltgt.apt-idea" version "0.21"
     id "com.github.johnrengelman.shadow" version "4.0.2"
+    id "org.jetbrains.kotlin.jvm" version "1.4.10"
     id "application"
 }
 
