@@ -1,4 +1,4 @@
-package com.nyala.server.infrastructure.mail
+package com.nyala.server.infrastructure.mail.old
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow
 import com.google.api.client.auth.oauth2.BearerToken
@@ -29,7 +29,7 @@ class GoogleCredentialProvider {
         val JSON_FACTORY: JsonFactory = JacksonFactory.getDefaultInstance()
         private val serverReceiverPort = 8888
         private const val TOKENS_DIRECTORY_PATH = "tokens"
-        private val SCOPES = setOf(
+        val SCOPES = setOf(
                 GmailScopes.GMAIL_LABELS,
                 GmailScopes.MAIL_GOOGLE_COM,
                 GmailScopes.GMAIL_METADATA
@@ -85,8 +85,8 @@ class GoogleCredentialProvider {
 
 fun main(args: Array<String>) {
     val provider = GoogleCredentialProvider()
-    val clientId = "835923206105-8ttgvcsogntl0iigdl3esl30t941ctbs.apps.googleusercontent.com"
-    val secret = "iC9POuSKYTsMEp_EFVtzzcyb"
+    val clientId = ""
+    val secret = ""
 
     val credential = provider.authorize(clientId, secret)!!
     println("Tokens ${credential.accessToken}, ${credential.refreshToken}")

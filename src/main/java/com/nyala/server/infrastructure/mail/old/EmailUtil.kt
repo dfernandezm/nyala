@@ -1,4 +1,4 @@
-package com.nyala.server.infrastructure.mail
+package com.nyala.server.infrastructure.mail.old
 
 class EmailUtil {
     companion object {

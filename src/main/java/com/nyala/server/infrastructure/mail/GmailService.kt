@@ -1,24 +1,36 @@
 package com.nyala.server.infrastructure.mail
 
+import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.services.gmail.Gmail
 import com.google.api.services.gmail.model.Label
 import com.google.api.services.gmail.model.Message
-import com.nyala.server.infrastructure.mail.EmailUtil.Companion.parseAddress
-import java.net.SocketTimeoutException
+import com.google.api.services.gmail.model.ModifyMessageRequest
+import com.nyala.server.infrastructure.mail.command.CleanupCommand
+import com.nyala.server.infrastructure.mail.command.Timeframe
+import com.nyala.server.infrastructure.mail.command.MailAction
+import com.nyala.server.infrastructure.mail.old.GoogleCredentialProvider
+import org.slf4j.LoggerFactory
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZonedDateTime
 
-class GmailService {
+class GmailService(private val credentialProvider: OAuth2CredentialProvider) {
 
     companion object {
         private const val TIMEOUT = 15000
         private const val APPLICATION_NAME = "Email Extractor"
+
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        @JvmStatic
+        private val log = LoggerFactory.getLogger(javaClass.enclosingClass)
     }
 
     private var gmail: Gmail? = null
 
-    fun getService(oauth2Client: OAuth2Client) {
+    fun init(credential: Credential) {
+
+        if (gmail == null) {
             // Build a new authorized API client service.
             val httpTransport = GoogleNetHttpTransport
                     .newTrustedTransport()
@@ -27,23 +39,21 @@ class GmailService {
                         request.readTimeout = TIMEOUT
                     }.transport
 
-
-            val credentialProvider = GcpCredentialProvider()
-            val credentials = credentialProvider.provideCredential(oauth2Client)
-            gmail = Gmail.Builder(httpTransport, GoogleCredentialProvider.JSON_FACTORY, credentials)
+            gmail = Gmail.Builder(httpTransport, GoogleCredentialProvider.JSON_FACTORY, credential)
                     .setApplicationName(APPLICATION_NAME)
                     .build()
-
+        }
     }
 
-    private tailrec fun Gmail.processMessages(
+
+    private tailrec fun processMessages(
             user: String,
             label: Label,
             nextPageToken: String? = null,
             process: (Message) -> Unit
     ) {
 
-        val messages = users().messages().list(user).apply {
+        val messages = gmail!!.users().messages().list(user).apply {
             labelIds = listOf(label.id)
             pageToken = nextPageToken
             includeSpamTrash = true
@@ -58,84 +68,73 @@ class GmailService {
         }
     }
 
-    private fun processFroms(
-            user: String,
-            label: Label,
-            process: (String) -> Unit
-    ) {
-
-            gmail!!.processMessages(user, label) {
-                    fun fetchAndProcess() {
-                        try {
-                            val message = gmail!!.users().messages().get(user, it.id).apply { format = "METADATA" }.execute()
-
-                            println("M: ${message.internalDate}")
-
-                            message.payload.headers.find { it.name == "From" }?.let { from ->
-                                process(parseAddress(from.value))
-
-                            }
-
-                            val now = ZonedDateTime.now()
-                            val msgDate = ZonedDateTime.from(Instant.ofEpochMilli(message.internalDate))
-                            gmail!!.users().messages().trash(user, message.id).execute()
-                        } catch (e: SocketTimeoutException) {
-                            // Process eventual failures.
-                            // Restart request on socket timeout.
-                            e.printStackTrace()
-                            fetchAndProcess()
-                        } catch (e: Exception) {
-                            // Process eventual failures.
-                            e.printStackTrace()
-                        }
-                    }
-                    fetchAndProcess()
-                }
+    private fun findLabel(user: String, labelName: String): Label {
+        val labelList = gmail!!.users().labels().list(user).execute()
+        return labelList.labels
+                .find { it.name == labelName } ?: error("Label `$labelName` is unknown.")
     }
 
+    private fun metadataFromMessage(user: String, message: Message): Message {
+        return gmail!!.users().messages().get(user, message.id).apply { format = "METADATA" }.execute()
+    }
 
-    fun fetchAndProcess(user: String, label: String, message: Message, process: (String) -> Unit) {
+    private fun messageMatchesTimeframe(message: Message, timeframe: Timeframe): Boolean {
+        val now = ZonedDateTime.now()
+        val localDate = Instant.ofEpochMilli(message.internalDate)
+        val msgDate = ZonedDateTime.ofInstant(localDate, ZoneId.systemDefault())
+
+        if (timeframe == Timeframe.BI_WEEKLY) {
+            log.info("Timeframe has been matched for message")
+            return msgDate.isBefore(now.minusWeeks(2))
+        }
+
+        return false
+    }
+
+    private fun markMessageRead(user: String, message: Message) {
         try {
-            val message = gmail!!.users().messages().get(user, message.id).apply { format = "METADATA" }.execute()
-
-            println("M: ${message.internalDate}")
+            log.info("Marking message ${message.id} as READ")
 
             message.payload.headers.find { it.name == "From" }?.let { from ->
-                process(parseAddress(from.value))
+                log.info("Message from: $from")
             }
 
-            val now = ZonedDateTime.now()
-            val msgDate = ZonedDateTime.from(Instant.ofEpochMilli(message.internalDate))
-            gmail!!.users().messages().trash(user, message.id).execute()
-        } catch (e: SocketTimeoutException) {
-            // Process eventual failures.
-            // Restart request on socket timeout.
-            e.printStackTrace()
-            //fetchAndProcess()
-        } catch (e: Exception) {
-            // Process eventual failures.
-            e.printStackTrace()
+            val modifyRequest = ModifyMessageRequest()
+            modifyRequest.removeLabelIds = listOf("UNREAD")
+            gmail!!.users().messages().modify(user, message.id, modifyRequest).execute()
+        } catch (t: Throwable) {
+            log.error("Error executing", t)
+        }
+
+    }
+
+    private fun executeCmd(user: String, labelName: String, action: MailAction, timeframe: Timeframe) {
+        log.info("Executing for user $user and label $labelName")
+        val label = findLabel(user, labelName)
+        processMessages(user, label) { message ->
+            val msg = metadataFromMessage(user, message)
+            if (messageMatchesTimeframe(msg, timeframe)) {
+               if (action == MailAction.MARK_READ) {
+                   markMessageRead(user, msg)
+               }
+            }
         }
     }
 
+    fun performCommand() {
+        log.info("Executing mail command...")
 
-    fun extract(service: Gmail,labelName: String) {
-        // Find the requested label
+        val label = "Freelances"
         val user = "me"
-        val labelList = service.users().labels().list(user).execute()
+        val action = MailAction.MARK_READ
+        val timeframe = Timeframe.BI_WEEKLY
 
-        val label = labelList.labels
-                .find { it.name == labelName } ?: error("Label `$labelName` is unknown.")
+        val cmd = CleanupCommand(user,
+                label = label,
+                action = MailAction.MARK_READ,
+                timeframe = timeframe
+        )
 
-        println("Extract: $label")
-
-        // Process all From headers.
-        val senders = mutableSetOf<String>()
-//        processFroms(user, label) {
-//            senders += it
-//        }
-
-        senders.forEach(::println)
+        executeCmd(user, label, action, timeframe)
     }
-
 }
