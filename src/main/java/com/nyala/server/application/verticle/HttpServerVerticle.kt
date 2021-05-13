@@ -136,6 +136,8 @@ class HttpServerVerticle : AbstractVerticle(), KoinComponent {
     private fun handleGetChannels(routingContext: RoutingContext) {
         val channelId = routingContext.request().getParam("channelId")
         val response = routingContext.response()
+        val currentUri = routingContext.request().absoluteURI()
+        vertx.orCreateContext.put("currentUri", currentUri)
 
         vertx.eventBus().rxSend<JsonObject>("channel", JsonObject().put("channelId", channelId))
                 .subscribe({
