@@ -14,8 +14,8 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.gmail.GmailScopes
 import com.google.auth.oauth2.GoogleCredentials
-import com.nyala.server.infrastructure.mail.oauth2.OAuth2Client
-import com.nyala.server.infrastructure.mail.oauth2.OAuth2Credential
+import com.nyala.server.infrastructure.mail.oauth2.google.OAuth2Client
+import com.nyala.server.infrastructure.mail.oauth2.google.OAuth2Credential
 import org.slf4j.LoggerFactory
 import java.io.File
 

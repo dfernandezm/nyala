@@ -1,4 +1,4 @@
-package com.nyala.server.infrastructure.mail.oauth2
+package com.nyala.server.infrastructure.mail.oauth2.google
 
 class OAuth2Credential(val accessToken: String,
                         val refreshToken: String,

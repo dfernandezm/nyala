@@ -105,9 +105,7 @@ dependencies {
     testCompile(group: "junit", name: "junit", version: "$junitVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
-    testCompile("org.mockito:mockito-all:$mockitoVersion") {
-        exclude group: 'org.hamcrest', module: 'hamcrest-all'
-    }
+
     testCompile("io.vertx:vertx-junit5:$vertxVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
@@ -128,7 +126,8 @@ dependencies {
             'org.assertj:assertj-core:3.11.1',
             'org.junit.jupiter:junit-jupiter-api:5.7.0',
             'com.github.kstyrc:embedded-redis:0.6',
-            'com.github.tomakehurst:wiremock:2.6.0'
+            'com.github.tomakehurst:wiremock:2.6.0',
+            'org.junit.jupiter:junit-jupiter-params:5.7.0'
     )
 
     testCompile("io.rest-assured:json-path:$restAssuredVersion") {
@@ -158,7 +157,9 @@ dependencies {
     compile "io.insert-koin:koin-core-ext:$koin_version"
     compile "io.insert-koin:koin-core:$koin_version"
 
-    compile "org.jetbrains.kotlin:kotlin-stdlib"
+    //compile "org.jetbrains.kotlin:kotlin-stdlib"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
     compile 'com.google.api-client:google-api-client:1.23.0'
     compile 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
     compile 'com.google.apis:google-api-services-gmail:v1-rev83-1.23.0'
@@ -167,6 +168,11 @@ dependencies {
     compile 'com.google.auth:google-auth-library-oauth2-http:0.25.5'
     compile 'com.google.auth:google-auth-library-credentials:0.25.5'
 
+    testCompile "org.mockito.kotlin:mockito-kotlin:3.2.0"
+    testCompile "org.mockito:mockito-inline:3.2.0"
+    compile group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13'
 
 
 }
+
+ext.kotlin_version = "1.4.3"
