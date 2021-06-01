@@ -6,7 +6,6 @@ import io.restassured.config.LogConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.redis.RedisOptions;
 import io.vertx.rxjava.core.Vertx;
@@ -15,10 +14,13 @@ import rx.Single;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.net.ServerSocket;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+//@Slf4j
 public class IntegrationTestHelper {
 
     private static final String RESTASSURED_LOG_FILENAME = "restassured.log";
@@ -30,6 +32,7 @@ public class IntegrationTestHelper {
     private static final String CONFIG_JSON_KEY = "config";
     private static final String REDIS_CONFIGURATION_KEY = "redisConfiguration";
     private static Vertx vertx;
+    private static volatile boolean koinStarted = false;
 
     public static void configureIntegrationTest() {
         VertxTestContext vertxTestContext = new VertxTestContext();
@@ -43,7 +46,8 @@ public class IntegrationTestHelper {
 
     private static void deployVerticlesWithHttpServer(VertxTestContext context) {
         configureRestAssuredLog();
-        Checkpoint serverStarted = context.checkpoint();
+        int port = getRandomPort();
+        int redisPort = getRandomPort();
 
         vertx = Vertx.vertx();
 
@@ -52,7 +56,29 @@ public class IntegrationTestHelper {
                 final JsonObject config = result.result().toJsonObject();
 
                 // Multideploy class expects this structure
+
+                // Set HTTP server port
+                config.getJsonObject("config")
+                        .getJsonArray("verticles")
+                        .getJsonObject(1)
+                        .getJsonObject("options")
+                        .getJsonObject("config")
+                        .put("http.port",  port);
+
+                // Set Redis port
+                config.getJsonObject("config")
+                        .getJsonObject("redisConfiguration")
+                        .put("port", redisPort);
+
+                config.getJsonObject("config")
+                        .getJsonArray("verticles")
+                        .getJsonObject(3)
+                        .getJsonObject("options")
+                        .getJsonObject("config")
+                        .put("port", redisPort);
+
                 config.put("verticles", config.getJsonObject("config").getJsonArray("verticles"));
+                config.put("http.port", port);
 
                 final DeploymentOptions options = new DeploymentOptions().setInstances(
                         NUMBER_INSTANCES).setConfig(config);
@@ -103,14 +129,28 @@ public class IntegrationTestHelper {
         RestAssured.reset();
         undeployVerticles();
         waitUntilVertxContextIsClosed();
+        EmbeddedRedis.stopRedis();
     }
 
     private static void undeployVerticles() {
-        deploymentIDs.forEach(id -> vertx.rxUndeploy(id).toBlocking().value());
+        if (deploymentIDs != null) {
+            deploymentIDs.forEach(id -> vertx.rxUndeploy(id).toBlocking().value());
+        }
     }
 
     private static void waitUntilVertxContextIsClosed() {
         final Single<Void> result = vertx.rxClose();
         result.toBlocking().value();
+    }
+
+    private static int getRandomPort() {
+        try {
+            ServerSocket socket = new ServerSocket(0);
+            int port = socket.getLocalPort();
+            socket.close();
+            return port;
+        } catch (IOException e) {
+           throw new RuntimeException("Error generating port for tests", e);
+        }
     }
 }
