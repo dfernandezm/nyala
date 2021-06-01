@@ -1,16 +1,12 @@
 package com.nyala.server.application.handler;
 
-
 import com.nyala.server.common.vertx.verticle.StatusVerticle;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 
-import javax.inject.Singleton;
-
 @Slf4j
-@Singleton
 public class StatusEndpointHandler {
 
     public void status(final RoutingContext routingContext) {
@@ -22,12 +18,12 @@ public class StatusEndpointHandler {
                             .putHeader("content-type", "application/json")
                             .setStatusCode(HttpStatus.SC_OK).end(statusMessage.body().encodePrettily());
                 }, error -> {
-                    log.error("Status endpoint failure: {}", error.getCause().getMessage());
+                    log.error("Status endpoint failure", error);
                     routingContext
                             .response()
                             .putHeader("content-type", "application/json")
                             .setStatusCode(HttpStatus.SC_SERVICE_UNAVAILABLE)
-                            .end(error.getCause().getMessage());
+                            .end(new JsonObject().put("message", "Status endpoint failure").encodePrettily());
                 });
     }
 }

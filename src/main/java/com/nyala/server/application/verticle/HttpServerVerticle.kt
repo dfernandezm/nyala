@@ -5,6 +5,7 @@ import com.nyala.server.common.shutdown.ShutdownUtils
 import com.nyala.server.common.vertx.FailureExceptionHandler
 import com.nyala.server.infrastructure.adapter.m3u.parser.M3uParser
 import com.nyala.server.infrastructure.config.HttpServerModule
+import com.nyala.server.infrastructure.di.DependencyInjection
 import io.vertx.core.Future
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.Json
@@ -19,8 +20,8 @@ import io.vertx.rxjava.ext.web.RoutingContext
 import io.vertx.rxjava.ext.web.handler.BodyHandler
 import lombok.extern.slf4j.Slf4j
 import org.koin.core.component.KoinComponent
-import org.koin.core.context.startKoin
 import org.koin.core.component.inject
+import org.koin.core.context.loadKoinModules
 import org.slf4j.LoggerFactory.getLogger
 import rx.Single
 import java.util.*
@@ -46,12 +47,7 @@ class HttpServerVerticle : AbstractVerticle(), KoinComponent {
     }
 
     private fun startDependencyInjection() {
-        startKoin {
-            // use Koin logger
-            printLogger()
-            // declare modules
-            modules(HttpServerModule(vertx).httpServerModule)
-        }
+        loadKoinModules(HttpServerModule(vertx).httpServerModule)
     }
 
     private fun startHttpServer(startFuture: Future<Void>) {

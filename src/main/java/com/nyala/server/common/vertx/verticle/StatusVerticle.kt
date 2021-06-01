@@ -2,6 +2,8 @@ package com.nyala.server.common.vertx.verticle
 
 import com.nyala.server.common.shutdown.ShutdownUtils.Companion.stopVerticle
 import com.nyala.server.common.vertx.redis.RedisConnectionChecker
+import com.nyala.server.infrastructure.config.StatusModule
+import com.nyala.server.infrastructure.di.DependencyInjection
 import io.vertx.core.Future
 import io.vertx.core.MultiMap
 import io.vertx.core.eventbus.DeliveryOptions
@@ -12,6 +14,7 @@ import io.vertx.rxjava.core.AbstractVerticle
 import io.vertx.rxjava.core.eventbus.Message
 import io.vertx.rxjava.redis.RedisClient
 import org.apache.http.entity.ContentType
+import org.koin.core.context.loadKoinModules
 import org.slf4j.LoggerFactory
 import rx.Single
 
@@ -19,19 +22,29 @@ class StatusVerticle : AbstractVerticle() {
 
     companion object {
         const val STATUS_ADDRESS = "status"
+        private val LOGGER = LoggerFactory.getLogger(StatusVerticle::class.java)
+        private const val ALIVE_MESSAGE = "{\"message\" : \"alive\"} "
+        private const val REDIS_CONFIGURATION_JSON_KEY = "redisConfiguration"
     }
 
-    private val LOGGER = LoggerFactory.getLogger(StatusVerticle::class.java)
-    private val ALIVE_MESSAGE = "{\"message\" : \"alive\"} "
-    private val REDIS_CONFIGURATION_JSON_KEY = "redisConfiguration"
     private lateinit var redisClient: RedisClient
 
     override fun start(startFuture: Future<Void?>) {
+        startDependencyInjection()
+        setupRedisListener()
+
+        LOGGER.info("Status Verticle deployed")
+        startFuture.complete()
+    }
+
+    private fun setupRedisListener() {
         initializeRedisClient()
         RedisConnectionChecker.checkForRedisConnection(redisClient)
         addRedisStatusConsumer()
-        LOGGER.info("Status Verticle deployed")
-        startFuture.complete()
+    }
+
+    private fun startDependencyInjection() {
+        loadKoinModules(StatusModule().statusModule)
     }
 
     private fun addRedisStatusConsumer() {

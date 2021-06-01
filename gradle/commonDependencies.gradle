@@ -38,141 +38,124 @@ ext {
 
 }
 
-dependencyManagement {
-    imports {
-        mavenBom 'io.micronaut:micronaut-bom:1.3.2'
-    }
-}
-
 dependencies {
 
     //Commons
-    compile group: "org.apache.commons", name: "commons-collections4", version: "$commonsCollectionsVersion"
-    compile group: "org.apache.commons", name: "commons-lang3", version: "$commonsLangVersion"
-    compile(group: "commons-io", name: "commons-io", version: "$commonsIoVersion") {
+    implementation group: "org.apache.commons", name: "commons-collections4", version: "$commonsCollectionsVersion"
+    implementation group: "org.apache.commons", name: "commons-lang3", version: "$commonsLangVersion"
+    implementation(group: "commons-io", name: "commons-io", version: "$commonsIoVersion") {
         force = true
     }
-    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: "$apacheHttpVersion"
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: "$apacheHttpVersion"
 
     //Vertx
-    // compile "io.vertx:vertx-unit:$vertxVersion"
-    compile "io.vertx:vertx-core:$vertxVersion"
-    compile "io.vertx:vertx-web:$vertxVersion"
-    compile "io.vertx:vertx-web-client:$vertxVersion"
-    compile "io.vertx:vertx-rx-java2:$vertxVersion"
-    compile "io.vertx:vertx-service-proxy:$vertxVersion"
-    compile "io.vertx:vertx-codegen:$vertxVersion"
-    compile "io.vertx:vertx-hazelcast:$vertxVersion"
-    compile "io.vertx:vertx-dropwizard-metrics:$vertxVersion"
-    compile "io.vertx:vertx-redis-client:$vertxVersion"
+    implementation "io.vertx:vertx-core:$vertxVersion"
+    implementation "io.vertx:vertx-web:$vertxVersion"
+    implementation "io.vertx:vertx-web-client:$vertxVersion"
+    implementation "io.vertx:vertx-rx-java2:$vertxVersion"
+    implementation "io.vertx:vertx-service-proxy:$vertxVersion"
+    implementation "io.vertx:vertx-codegen:$vertxVersion"
+    implementation "io.vertx:vertx-hazelcast:$vertxVersion"
+    implementation "io.vertx:vertx-dropwizard-metrics:$vertxVersion"
+    implementation "io.vertx:vertx-redis-client:$vertxVersion"
 
     //vertx-swagger
-    compile(group: 'com.github.phiz71', name: 'vertx-swagger-router', version: "$vertxSwaggerVersion")
+    implementation(group: 'com.github.phiz71', name: 'vertx-swagger-router', version: "$vertxSwaggerVersion")
 
     //MongoDB Client
-    compile "io.vertx:vertx-mongo-client:$vertxVersion"
+    implementation "io.vertx:vertx-mongo-client:$vertxVersion"
 
-
-    compile group: 'org.projectlombok', name: 'lombok', version: "$lombokVersion"
+    implementation group: 'org.projectlombok', name: 'lombok', version: "$lombokVersion"
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: "$lombokVersion"
 
     //Guice
-    compile "com.google.inject:guice:$guiceVersion"
-    compile group: 'com.google.inject.extensions', name: 'guice-multibindings', version: "$guiceVersion"
+    implementation "com.google.inject:guice:$guiceVersion"
+    implementation group: 'com.google.inject.extensions', name: 'guice-multibindings', version: "$guiceVersion"
 
-
-    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.7.4"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.7.4"
 
     //RX
     // https://mvnrepository.com/artifact/io.reactivex.rxjava2/rxjava
-    compile(group: 'io.reactivex.rxjava2', name: 'rxjava', version: "$rxJavaVersion")
+    implementation(group: 'io.reactivex.rxjava2', name: 'rxjava', version: "$rxJavaVersion")
 
     //Config
-    compile "com.typesafe:config:$typesafeVersion"
+    implementation "com.typesafe:config:$typesafeVersion"
 
     //Logging
-    compile "org.slf4j:slf4j-api:$slf4jVersion"
-    compile "ch.qos.logback:logback-classic:$logbackVersion"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "ch.qos.logback:logback-classic:$logbackVersion"
 
     //Hystrix
-    compile "com.netflix.hystrix:hystrix-core:$hystrixVersion"
+    implementation "com.netflix.hystrix:hystrix-core:$hystrixVersion"
 
     //Javaslang
-    compile "io.vavr:vavr:$vavrVersion"
+    implementation "io.vavr:vavr:$vavrVersion"
+
+    implementation 'org.jsoup:jsoup:1.13.1'
+
+    // JAX-B dependencies for JDK 9+
+    implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
+    implementation "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+
+    implementation 'io.lindstrom:m3u8-parser:0.19'
+
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
+
+    // Koin for JUnit 5
+    testImplementation "io.insert-koin:koin-test-junit5:$koin_version"
+
+    // Koin Extended & experimental features (JVM)
+    implementation "io.insert-koin:koin-core-ext:$koin_version"
+    implementation "io.insert-koin:koin-core:$koin_version"
+
+    // implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    implementation 'com.google.api-client:google-api-client:1.23.0'
+    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
+    implementation 'com.google.apis:google-api-services-gmail:v1-rev83-1.23.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.0-M1'
+
+    implementation 'com.google.auth:google-auth-library-oauth2-http:0.25.5'
+    implementation 'com.google.auth:google-auth-library-credentials:0.25.5'
+
+    implementation group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13'
 
     //Test
-    testCompile "org.hamcrest:hamcrest-all:$hamcrestVersion"
-    testCompile(group: "junit", name: "junit", version: "$junitVersion") {
+    testImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
+
+    testImplementation("io.vertx:vertx-junit5:$vertxVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
 
-    testCompile("io.vertx:vertx-junit5:$vertxVersion") {
+    testImplementation("io.rest-assured:rest-assured:$restAssuredVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
+    testImplementation("io.rest-assured:json-schema-validator:$restAssuredVersion") {
+        exclude group: 'org.hamcrest', module: 'hamcrest-all'
+    }
+    testImplementation("io.rest-assured:json-path:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
 
-    testCompile("io.rest-assured:rest-assured:$restAssuredVersion") {
-        exclude group: 'org.hamcrest', module: 'hamcrest-all'
-    }
-    testCompile("io.rest-assured:json-schema-validator:$restAssuredVersion") {
-        exclude group: 'org.hamcrest', module: 'hamcrest-all'
-    }
-    testCompile("io.rest-assured:json-path:$restAssuredVersion") {
-        exclude group: 'org.hamcrest', module: 'hamcrest-all'
-    }
-
-    testCompile(
+    testImplementation(
             'org.hamcrest:hamcrest-all:1.3',
             'org.codehaus.groovy:groovy-all:2.4.4',
             'org.assertj:assertj-core:3.11.1',
             'org.junit.jupiter:junit-jupiter-api:5.7.0',
+            'org.junit.jupiter:junit-jupiter-engine:5.7.0',
             'com.github.kstyrc:embedded-redis:0.6',
             'com.github.tomakehurst:wiremock:2.6.0',
             'org.junit.jupiter:junit-jupiter-params:5.7.0'
     )
 
-    testCompile("io.rest-assured:json-path:$restAssuredVersion") {
+    testImplementation("io.rest-assured:json-path:$restAssuredVersion") {
         exclude group: 'org.hamcrest', module: 'hamcrest-all'
     }
 
-    testCompile "cglib:cglib-nodep:$cglibVersion"
-
-    annotationProcessor "io.micronaut:micronaut-inject-java"
-    compile "io.micronaut:micronaut-inject"
-
-    compile 'org.jsoup:jsoup:1.13.1'
-
-    // JAX-B dependencies for JDK 9+
-    compile "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
-    compile "org.glassfish.jaxb:jaxb-runtime:2.3.2"
-
-    compile 'io.lindstrom:m3u8-parser:0.19'
-
-    testCompile("org.junit.jupiter:junit-jupiter-params:5.7.0")
-
-    // Koin for JUnit 4
-    testCompile "io.insert-koin:koin-test-junit4:$koin_version"
-    // Koin for JUnit 5
-    testCompile "io.insert-koin:koin-test-junit5:$koin_version"
-    // Koin Extended & experimental features (JVM)
-    compile "io.insert-koin:koin-core-ext:$koin_version"
-    compile "io.insert-koin:koin-core:$koin_version"
-
-    //compile "org.jetbrains.kotlin:kotlin-stdlib"
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-
-    compile 'com.google.api-client:google-api-client:1.23.0'
-    compile 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
-    compile 'com.google.apis:google-api-services-gmail:v1-rev83-1.23.0'
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.0-M1'
-
-    compile 'com.google.auth:google-auth-library-oauth2-http:0.25.5'
-    compile 'com.google.auth:google-auth-library-credentials:0.25.5'
-
-    testCompile "org.mockito.kotlin:mockito-kotlin:3.2.0"
-    testCompile "org.mockito:mockito-inline:3.2.0"
-    compile group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13'
-
-
+    testImplementation "cglib:cglib-nodep:$cglibVersion"
+    testImplementation "org.mockito.kotlin:mockito-kotlin:3.2.0"
+    testImplementation "org.mockito:mockito-inline:3.2.0"
 }
 
-ext.kotlin_version = "1.4.3"
+//ext.kotlin_version = "1.4.3"

@@ -4,13 +4,14 @@ import com.google.api.client.auth.oauth2.*
 import com.nyala.server.infrastructure.mail.oauth2.google.google.GoogleCredentialHelper
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import org.mockito.kotlin.*
 
 import java.lang.RuntimeException
-import kotlin.test.assertNotNull
+
 
 /**
  * In order to run the test with Coverage in IntelliJ ensure the Run Configurations...
@@ -133,8 +134,8 @@ class CredentialHelperTest {
         // Then: credential exists
         val credential = credentialHelperSpy.getStoredCredential(oauth2Client.clientId, anUserId)
         assertNotNull(credential)
-        assertThat(credential.accessToken, equalTo("anAccessToken"))
-        assertThat(credential.refreshToken, equalTo("aRefreshToken"))
+        assertThat(credential?.accessToken, equalTo("anAccessToken"))
+        assertThat(credential?.refreshToken, equalTo("aRefreshToken"))
     }
 
     private fun anOauth2Client(): Pair<Set<String>, OAuth2Client> {

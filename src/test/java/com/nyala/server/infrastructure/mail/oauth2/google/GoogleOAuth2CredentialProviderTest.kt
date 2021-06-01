@@ -13,12 +13,15 @@ import org.mockito.kotlin.whenever
 
 class GoogleOAuth2CredentialProviderTest {
 
-    //TODO: Not working atm: https://www.baeldung.com/kotlin/junit-5-kotlin
+    /**
+     * For Parameterized tests to work it's needed a junit-jupiter-engine in the classpath and a recent version
+     * of Gradle otherwise it fails with strange errors in IDEA and Gradle
+     */
     @ParameterizedTest
-    @CsvSource("null,https://myserver.url", "https://anUri,https://myserver.url")
-    fun generatesAuthUrlFromValidOAuthClient(clientId: String, expectedRedirectUri:String) {
-        val clientIdVal = if (clientId == "null") null else clientId
-        val (_, validOauth2Client) = aValidOauth2Client(clientIdVal)
+    @CsvSource("null,https://myserver.url", "https://customUri.url,https://customUri.url")
+    fun generatesAuthUrlFromValidOAuthClient(uriProvided: String, expectedRedirectUri:String) {
+        val redirectUri = if (uriProvided == "null") null else uriProvided
+        val (_, validOauth2Client) = aValidOauth2Client(redirectUri)
 
         val mockedServerInfo = Mockito.mock(ServerInfo::class.java)
         whenever(mockedServerInfo.currentUri()).thenReturn(expectedRedirectUri)
@@ -34,16 +37,6 @@ class GoogleOAuth2CredentialProviderTest {
         assertClientIdIs(authUrl, validOauth2Client.clientId)
         assertRedirectUri(authUrl, expectedRedirectUri)
         assertScopesAre(authUrl, validOauth2Client.scopes)
-    }
-
-    @ParameterizedTest
-    @CsvSource(
-            "1, 1",
-            "2, 4",
-            "3, 9"
-    )
-    fun testSquares(input: Int, expected: Int) {
-        Assertions.assertEquals(expected, input * input)
     }
 
     private fun assertScopesAre(authUrl: String, scopes: Set<String>) {
