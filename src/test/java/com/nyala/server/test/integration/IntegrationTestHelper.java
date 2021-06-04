@@ -57,6 +57,7 @@ public class IntegrationTestHelper {
 
                 // Multideploy class expects this structure
 
+
                 // Set HTTP server port
                 config.getJsonObject("config")
                         .getJsonArray("verticles")

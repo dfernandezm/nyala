@@ -2,8 +2,7 @@ package com.nyala.server.common.vertx.verticle
 
 import com.nyala.server.common.shutdown.ShutdownUtils.Companion.stopVerticle
 import com.nyala.server.common.vertx.redis.RedisConnectionChecker
-import com.nyala.server.infrastructure.config.StatusModule
-import com.nyala.server.infrastructure.di.DependencyInjection
+import com.nyala.server.infrastructure.di.KoinDI
 import io.vertx.core.Future
 import io.vertx.core.MultiMap
 import io.vertx.core.eventbus.DeliveryOptions
@@ -14,7 +13,6 @@ import io.vertx.rxjava.core.AbstractVerticle
 import io.vertx.rxjava.core.eventbus.Message
 import io.vertx.rxjava.redis.RedisClient
 import org.apache.http.entity.ContentType
-import org.koin.core.context.loadKoinModules
 import org.slf4j.LoggerFactory
 import rx.Single
 
@@ -44,7 +42,8 @@ class StatusVerticle : AbstractVerticle() {
     }
 
     private fun startDependencyInjection() {
-        loadKoinModules(StatusModule().statusModule)
+        //loadKoinModules(StatusModule().statusModule)
+       KoinDI.start(vertx)
     }
 
     private fun addRedisStatusConsumer() {

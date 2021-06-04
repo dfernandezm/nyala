@@ -19,7 +19,7 @@
       {
         "main": "com.nyala.server.application.verticle.HttpServerVerticle",
         "options": {
-          "instances": 1,
+          "instances": 4,
           "config": {
             "http.port": 9004
           }

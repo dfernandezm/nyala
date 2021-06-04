@@ -5,12 +5,12 @@ import com.nyala.server.common.shutdown.ShutdownUtils
 import com.nyala.server.common.vertx.FailureExceptionHandler
 import com.nyala.server.infrastructure.adapter.m3u.parser.M3uParser
 import com.nyala.server.infrastructure.config.HttpServerModule
-import com.nyala.server.infrastructure.di.DependencyInjection
+import com.nyala.server.infrastructure.di.IsolatedKoinVerticle
+import com.nyala.server.infrastructure.di.KoinDIFactory
 import io.vertx.core.Future
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
-import io.vertx.rxjava.core.AbstractVerticle
 import io.vertx.rxjava.core.buffer.Buffer
 import io.vertx.rxjava.core.http.HttpServer
 import io.vertx.rxjava.core.http.HttpServerRequest
@@ -19,9 +19,7 @@ import io.vertx.rxjava.ext.web.Router
 import io.vertx.rxjava.ext.web.RoutingContext
 import io.vertx.rxjava.ext.web.handler.BodyHandler
 import lombok.extern.slf4j.Slf4j
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.context.loadKoinModules
 import org.slf4j.LoggerFactory.getLogger
 import rx.Single
 import java.util.*
@@ -31,7 +29,7 @@ import java.util.*
  *
  */
 @Slf4j
-class HttpServerVerticle : AbstractVerticle(), KoinComponent {
+class HttpServerVerticle : IsolatedKoinVerticle() {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -40,14 +38,25 @@ class HttpServerVerticle : AbstractVerticle(), KoinComponent {
     }
 
     private val statusEndpointHandler: StatusEndpointHandler by inject()
+    private var uuid = ""
 
     override fun start(startFuture: Future<Void>) {
+        uuid = UUID.randomUUID().toString()
         startDependencyInjection()
         startHttpServer(startFuture)
     }
 
+    // https://stackoverflow.com/questions/63359639/vertx-webclient-shared-vs-single-across-multiple-verticles
+    override fun getAppName(): String {
+        val appName = "HttpServer:$uuid"
+        log.info("App Name: $appName")
+        return appName
+    }
+
     private fun startDependencyInjection() {
-        loadKoinModules(HttpServerModule(vertx).httpServerModule)
+        KoinDIFactory.startNewApp(getAppName()) {
+            modules(HttpServerModule(vertx).httpServerModule)
+        }
     }
 
     private fun startHttpServer(startFuture: Future<Void>) {
@@ -84,6 +93,9 @@ class HttpServerVerticle : AbstractVerticle(), KoinComponent {
     }
 
     private fun setupRouter(): Router {
+
+        log.info("Status endpoint handler ID: {}", statusEndpointHandler)
+
         val router = Router.router(vertx)
         router.route().consumes("application/json")
         router.route().produces("application/json")
