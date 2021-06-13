@@ -1,2 +1,4 @@
-rootProject.name='nyala'
+rootProject.name =' nyala'
+include 'nyala-common'
+include 'nyala-core'
 
