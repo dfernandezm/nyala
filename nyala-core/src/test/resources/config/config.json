@@ -1,0 +1,47 @@
+{
+  "http.port": 9004,
+  "config": {
+    "redisConfiguration": {
+      "host": "127.0.0.1",
+      "port": 6799,
+      "ssl": false
+    },
+    "verticles": [
+      {
+        "main": "com.nyala.core.application.verticle.ChannelsVerticle",
+        "options": {
+          "instances": 1,
+          "config": {
+            "http.port": 9004
+          }
+        }
+      },
+      {
+        "main": "com.nyala.core.application.verticle.HttpServerVerticle",
+        "options": {
+          "instances": 4,
+          "config": {
+            "http.port": 9004
+          }
+        }
+      },
+      {
+        "main": "com.nyala.core.application.verticle.StatusVerticle",
+        "options": {
+          "instances": 1,
+          "config": {
+          }
+        }
+      },
+      {
+        "main": "com.nyala.core.test.integration.EmbeddedRedis",
+        "options": {
+          "instances": 1,
+          "config": {
+            "port": 6799
+          }
+        }
+      }
+    ]
+  }
+}

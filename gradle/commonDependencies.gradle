@@ -1,7 +1,5 @@
 repositories {
-
     mavenLocal()
-
     mavenCentral()
 
     maven {
@@ -82,7 +80,7 @@ dependencies {
     implementation "com.typesafe:config:$typesafeVersion"
 
     //Logging
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    //implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "ch.qos.logback:logback-classic:$logbackVersion"
 
     //Hystrix

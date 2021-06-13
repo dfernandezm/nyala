@@ -1,0 +1,58 @@
+buildscript {
+    ext.kotlin_version = '1.4.31'
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+plugins {
+    id "io.spring.dependency-management" version "1.0.6.RELEASE"
+    id "java"
+    id "net.ltgt.apt-idea" version "0.21"
+    id "com.github.johnrengelman.shadow" version "4.0.2"
+    id "org.jetbrains.kotlin.jvm" version "1.4.10"
+    id "application"
+    id "jacoco"
+}
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'idea'
+apply plugin: 'base'
+apply plugin: 'signing'
+apply plugin: 'jacoco'
+apply plugin: 'groovy'
+
+apply from: '../gradle/commonDependencies.gradle'
+apply from: '../gradle/tasks.gradle'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(":nyala-common")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+
+// java -jar -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory nyala-core/build/libs/nyala-core-1.0.0.jar run com.nyala.server.application.verticle.MainStarter -conf docker/config.json
+mainClassName = 'io.vertx.core.Launcher'
