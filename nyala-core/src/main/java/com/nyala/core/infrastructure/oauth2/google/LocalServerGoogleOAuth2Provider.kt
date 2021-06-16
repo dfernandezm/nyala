@@ -1,4 +1,4 @@
-package com.nyala.core.infrastructure.mail.old
+package com.nyala.core.infrastructure.oauth2.google
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow
 import com.google.api.client.auth.oauth2.BearerToken
@@ -23,7 +23,7 @@ import java.io.InputStreamReader
 
 
 // https://plswiderski.medium.com/sending-emails-from-java-app-with-gmail-api-eac23ca0eb5
-class GoogleCredentialProvider {
+class LocalServerGoogleOAuth2Provider {
 
     companion object {
         val JSON_FACTORY: JsonFactory = JacksonFactory.getDefaultInstance()
@@ -84,7 +84,7 @@ class GoogleCredentialProvider {
 }
 
 fun main(args: Array<String>) {
-    val provider = GoogleCredentialProvider()
+    val provider = LocalServerGoogleOAuth2Provider()
     val clientId = ""
     val secret = ""
 

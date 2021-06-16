@@ -1,4 +1,4 @@
-package com.nyala.core.infrastructure.mail.oauth2.google.google
+package com.nyala.core.infrastructure.oauth2.google
 
 import com.google.api.client.auth.oauth2.*
 import com.google.api.client.googleapis.auth.oauth2.GoogleOAuthConstants
@@ -7,8 +7,8 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.common.annotations.VisibleForTesting
-import com.nyala.core.infrastructure.mail.oauth2.google.OAuth2Client
-import com.nyala.core.infrastructure.mail.oauth2.google.OAuth2Credential
+import com.nyala.core.domain.model.oauth2.OAuth2Client
+import com.nyala.core.domain.model.oauth2.OAuth2Credential
 import com.nyala.core.infrastructure.mail.old.OAuthFlowCredentialProvider
 import org.slf4j.LoggerFactory
 

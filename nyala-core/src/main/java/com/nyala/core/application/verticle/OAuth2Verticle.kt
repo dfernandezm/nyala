@@ -10,7 +10,7 @@ import io.vertx.reactivex.core.AbstractVerticle
 import org.koin.core.component.KoinComponent
 import org.slf4j.LoggerFactory
 
-class ChannelsVerticle: IsolatedKoinVerticle() {
+class OAuth2Verticle: IsolatedKoinVerticle() {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -23,18 +23,7 @@ class ChannelsVerticle: IsolatedKoinVerticle() {
     }
 
     override fun start(startFuture: Future<Void>?) {
-        vertx.eventBus().consumer<JsonObject>("channel")
-        { m ->
-            val channelId = m.body().getString("channelId")
-            log.info("Received channel {}", channelId)
-            m.reply(handleGetChannel(channelId))
-            m.rxReply<JsonObject>(handleGetChannel(channelId))
-                    .subscribe( {
-                        log.info("channels successfully recovered")
-                    }, {
-                        m.fail(1, "Error getting channels")
-                    })
-        }
+       //TODO: EventBus consumers for OAuth2 Commands
     }
 
     private fun handleGetChannel(channelId: String): JsonObject {

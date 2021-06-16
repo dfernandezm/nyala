@@ -1,10 +1,11 @@
-package com.nyala.core.infrastructure.mail
+package com.nyala.core.infrastructure.oauth2.google
 
 import com.google.api.client.auth.oauth2.*
-import com.nyala.core.infrastructure.mail.oauth2.google.OAuth2Client
-import com.nyala.core.infrastructure.mail.oauth2.google.OAuth2Credential
-import com.nyala.core.infrastructure.mail.oauth2.google.OAuth2Provider
-import com.nyala.core.infrastructure.mail.oauth2.google.google.GoogleCredentialHelper
+import com.nyala.core.infrastructure.oauth2.OAuth2CredentialProvider
+import com.nyala.core.infrastructure.mail.ServerInfo
+import com.nyala.core.domain.model.oauth2.OAuth2Client
+import com.nyala.core.domain.model.oauth2.OAuth2Credential
+import com.nyala.core.domain.model.oauth2.OAuth2Provider
 
 /**
  * This class represents the Google implementations of the basics of OAuth2 flow,

@@ -2,6 +2,7 @@ package com.nyala.core.application.verticle
 
 import com.nyala.core.application.handler.StatusEndpointHandler
 import com.nyala.common.shutdown.ShutdownUtils
+import com.nyala.common.vertx.FailureExceptionHandler
 import com.nyala.core.infrastructure.adapter.m3u.parser.M3uParser
 import com.nyala.core.infrastructure.config.HttpServerModule
 import com.nyala.core.infrastructure.di.IsolatedKoinVerticle
@@ -96,15 +97,19 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
         log.info("Status endpoint handler ID: {}", statusEndpointHandler)
 
         val router = Router.router(vertx)
+
         router.route().consumes("application/json")
         router.route().produces("application/json")
         router.route().handler { context: RoutingContext ->
             context.response().headers().add("Content-Type", "application/json")
             context.next()
         }
-        //router.route().failureHandler()
+
+        router.route().failureHandler(FailureExceptionHandler())
         router.route().handler(BodyHandler.create())
+
         router.get("/channels/:channelId").handler { handleGetChannels(it) }
+        //TODO: OAuth2 endpoint
         router["/_status"].handler {
            try {
                statusEndpointHandler.status(it)

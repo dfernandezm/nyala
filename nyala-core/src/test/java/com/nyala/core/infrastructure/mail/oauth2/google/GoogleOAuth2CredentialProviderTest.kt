@@ -1,9 +1,10 @@
 package com.nyala.core.infrastructure.mail.oauth2.google
 
 import com.google.api.client.auth.oauth2.*
-import com.nyala.core.infrastructure.mail.GoogleOAuth2CredentialProvider
+import com.nyala.core.infrastructure.oauth2.google.GoogleOAuth2CredentialProvider
 import com.nyala.core.infrastructure.mail.ServerInfo
-import com.nyala.core.infrastructure.mail.oauth2.google.google.GoogleCredentialHelper
+import com.nyala.core.infrastructure.oauth2.google.GoogleCredentialHelper
+import com.nyala.core.domain.model.oauth2.OAuth2Client
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

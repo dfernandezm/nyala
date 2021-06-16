@@ -1,7 +1,7 @@
-package com.nyala.core.infrastructure.mail
+package com.nyala.core.infrastructure.oauth2
 
-import com.nyala.core.infrastructure.mail.oauth2.google.OAuth2Client
-import com.nyala.core.infrastructure.mail.oauth2.google.OAuth2Credential
+import com.nyala.core.domain.model.oauth2.OAuth2Client
+import com.nyala.core.domain.model.oauth2.OAuth2Credential
 
 interface OAuth2CredentialProvider {
    fun generateAuthUrl(client: OAuth2Client): String
