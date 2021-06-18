@@ -5,12 +5,12 @@ import io.restassured.RestAssured;
 import io.restassured.config.LogConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.redis.RedisOptions;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.redis.RedisClient;
-import lombok.extern.slf4j.Slf4j;
 import rx.Single;
 
 import java.io.File;
@@ -21,7 +21,6 @@ import java.net.ServerSocket;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
 public class IntegrationTestHelper {
 
     private static final String RESTASSURED_LOG_FILENAME = "restassured.log";
@@ -33,7 +32,6 @@ public class IntegrationTestHelper {
     private static final String CONFIG_JSON_KEY = "config";
     private static final String REDIS_CONFIGURATION_KEY = "redisConfiguration";
     private static Vertx vertx;
-    private static volatile boolean koinStarted = false;
 
     public static void configureIntegrationTest() {
         VertxTestContext vertxTestContext = new VertxTestContext();
@@ -58,10 +56,31 @@ public class IntegrationTestHelper {
 
                 // Multideploy class expects this structure
 
-                setHttpServerPort(port, config);
-                setRedisPort(redisPort, config);
+                // Set HTTP server port
+                JsonArray verticles =  config.getJsonObject("config")
+                        .getJsonArray("verticles");
 
-                setEmbeddedRedisPort(redisPort, config);
+                JsonObject httpServer = verticles
+                        .getJsonObject(2);
+
+                httpServer.getJsonObject("options")
+                        .getJsonObject("config")
+                        .put("http.port",  port);
+
+                // Set Redis port
+                config.getJsonObject("config")
+                        .getJsonObject("redisConfiguration")
+                        .put("port", redisPort);
+
+                JsonObject embeddedRedis = verticles
+                        .getJsonObject(4);
+
+//                config.getJsonObject("config")
+//                        .getJsonArray("verticles")
+//                        .getJsonObject(3)
+                embeddedRedis.getJsonObject("options")
+                        .getJsonObject("config")
+                        .put("port", redisPort);
 
                 config.put("verticles", config.getJsonObject("config").getJsonArray("verticles"));
                 config.put("http.port", port);

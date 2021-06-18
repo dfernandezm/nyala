@@ -17,10 +17,12 @@
         }
       },
       {
-        "main": "com.nyala.core.application.verticle.Oauth2Verticle",
+        "main": "com.nyala.core.application.verticle.OAuth2Verticle",
         "options": {
           "instances": 1,
-          "config": {}
+          "config": {
+            "http.port": 9004
+          }
         }
       },
       {
