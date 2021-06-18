@@ -1,8 +1,10 @@
 package com.nyala.core.application.verticle
 
+import com.nyala.core.application.Oauth2UrlRequest
 import com.nyala.core.domain.model.Channel
 import com.nyala.core.infrastructure.di.IsolatedKoinVerticle
 import io.vertx.core.Future
+import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import io.vertx.reactivex.core.AbstractVerticle
 
@@ -19,16 +21,19 @@ class OAuth2Verticle: IsolatedKoinVerticle() {
     }
 
     override fun getAppName(): String {
-        return "Channels"
+        return "Oauth2Verticle"
     }
 
     override fun start(startFuture: Future<Void>?) {
-       //TODO: EventBus consumers for OAuth2 Commands
-    }
-
-    private fun handleGetChannel(channelId: String): JsonObject {
-        log.info("Channel ID requested {}", channelId)
-        val channel = Channel(name = "Cuatro HD", country = "ES")
-        return JsonObject().put("channel", JsonObject.mapFrom(channel))
+        vertx.eventBus().consumer<JsonObject>("oauth2.authUrl") { message ->
+            val oauth2UrlRequest = message.body().mapTo(Oauth2UrlRequest::class.java)
+            log.info("Received - {}", oauth2UrlRequest)
+            val resp = JsonObject().put("authUrl", "https://google.com")
+            message.rxReply<JsonObject>(resp).subscribe ({
+                log.info("Responding...")
+            }, {
+                log.error("Error occurred", it)
+            })
+        }
     }
 }

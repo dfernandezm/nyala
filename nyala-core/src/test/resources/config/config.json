@@ -17,6 +17,13 @@
         }
       },
       {
+        "main": "com.nyala.core.application.verticle.Oauth2Verticle",
+        "options": {
+          "instances": 1,
+          "config": {}
+        }
+      },
+      {
         "main": "com.nyala.core.application.verticle.HttpServerVerticle",
         "options": {
           "instances": 4,

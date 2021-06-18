@@ -14,6 +14,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.rxjava.core.buffer.Buffer
 import io.vertx.rxjava.core.http.HttpServer
 import io.vertx.rxjava.core.http.HttpServerRequest
+import io.vertx.rxjava.core.http.HttpServerResponse
 import io.vertx.rxjava.ext.web.FileUpload
 import io.vertx.rxjava.ext.web.Router
 import io.vertx.rxjava.ext.web.RoutingContext
@@ -109,7 +110,10 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
         router.route().handler(BodyHandler.create())
 
         router.get("/channels/:channelId").handler { handleGetChannels(it) }
-        //TODO: OAuth2 endpoint
+
+        router.post("/oauth2/authUrl").handler { handleGenerateAuthUrl(it) }
+        router.post("/oauth2/validateCode")
+
         router["/_status"].handler {
            try {
                statusEndpointHandler.status(it)
@@ -161,5 +165,27 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
                     log.error("Error occurred", it)
                     response.setStatusCode(500).end(Json.encodePrettily(JsonObject(it.message)))
                 })
+    }
+
+    private fun handleGenerateAuthUrl(routingContext: RoutingContext) {
+        val oauth2UrlRequestJson = routingContext.bodyAsJson
+        val response = routingContext.response()
+        val currentUri = routingContext.request().absoluteURI()
+        vertx.orCreateContext.put("currentUri", currentUri)
+
+        vertx.eventBus().rxSend<JsonObject>("oauth2.authUrl", oauth2UrlRequestJson)
+                .subscribe({ message ->
+                    log.info("Sent oauth2Request")
+                    response
+                            .putHeader("content-type", "application/json")
+                            .end(Json.encodePrettily(message.body()))
+                }, {
+                    log.error("Error occurred", it)
+                    sendErrorCode(response, it)
+                })
+    }
+
+    private fun sendErrorCode(response: HttpServerResponse, it: Throwable) {
+        response.setStatusCode(500).end(Json.encodePrettily(JsonObject(it.message)))
     }
 }

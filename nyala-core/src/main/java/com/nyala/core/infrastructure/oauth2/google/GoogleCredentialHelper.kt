@@ -9,7 +9,6 @@ import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.common.annotations.VisibleForTesting
 import com.nyala.core.domain.model.oauth2.OAuth2Client
 import com.nyala.core.domain.model.oauth2.OAuth2Credential
-import com.nyala.core.infrastructure.mail.old.OAuthFlowCredentialProvider
 import org.slf4j.LoggerFactory
 
 import java.io.File
@@ -61,7 +60,7 @@ class GoogleCredentialHelper {
                 oAuth2Client.clientId,
                 GoogleOAuthConstants.AUTHORIZATION_SERVER_URL)
                 .setScopes(oAuth2Client.scopes)
-                .setDataStoreFactory(FileDataStoreFactory(File(OAuthFlowCredentialProvider.FILE_TOKENS_PATH)))
+                .setDataStoreFactory(FileDataStoreFactory(File("/tmp/tokens")))
                 .build()
     }
 
