@@ -33,7 +33,7 @@ class Oauth2IT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .contentType(ContentType.JSON)
-                .body("url", containsString("https://"))
+                .body("authUrl", containsString("https://"))
     }
 
     companion object {
