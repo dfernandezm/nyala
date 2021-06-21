@@ -38,15 +38,15 @@ class OAuth2Verticle: IsolatedKoinVerticle() {
         vertx.eventBus().consumer<JsonObject>("oauth2.authUrl") { message ->
             val oauth2UrlRequest = message.body().mapTo(Oauth2UrlRequest::class.java)
             log.info("Received - {}", oauth2UrlRequest)
+            val oauth2ClientDto = oauth2UrlRequest.oauth2Client
             val oAuth2Client = OAuth2Client(
-                    clientId = oauth2UrlRequest.oauth2ClientId,
-                    clientSecret = oauth2UrlRequest.oauth2ClientSecret,
+                    clientId = oauth2ClientDto.clientId,
+                    clientSecret = oauth2ClientDto.clientSecret,
                     scopes = setOf(),
                     applicationName = "nyala"
             )
 
             val authUrl = oAuth2CredentialProvider.generateAuthUrl(oAuth2Client)
-
             val resp = JsonObject().put("authUrl", authUrl)
             message.rxReply<JsonObject>(resp).subscribe ({
                 log.info("Responding...")

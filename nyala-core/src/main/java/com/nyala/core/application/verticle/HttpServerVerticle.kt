@@ -4,6 +4,7 @@ import com.nyala.core.application.handler.StatusEndpointHandler
 import com.nyala.common.shutdown.ShutdownUtils
 import com.nyala.common.vertx.FailureExceptionHandler
 import com.nyala.common.vertx.verticle.SharedCache
+import com.nyala.core.application.handler.OAuth2Handler
 import com.nyala.core.infrastructure.adapter.m3u.parser.M3uParser
 import com.nyala.core.infrastructure.config.HttpServerModule
 import com.nyala.core.infrastructure.di.IsolatedKoinVerticle
@@ -40,6 +41,8 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
     }
 
     private val statusEndpointHandler: StatusEndpointHandler by inject()
+    private val oauth2Handler: OAuth2Handler by inject()
+
     private var uuid = ""
 
     override fun start(startFuture: Future<Void>) {
@@ -114,8 +117,8 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
         router.route().handler(BodyHandler.create())
 
         router.get("/channels/:channelId").handler { handleGetChannels(it) }
-        router.post("/oauth2/authUrl").handler { handleGenerateAuthUrl(it) }
-        router.post("/oauth2/validateCode")
+        router.post("/oauth2/authUrl").handler(oauth2Handler)
+        router.post("/oauth2/validateCode").handler(oauth2Handler)
 
         router["/_status"].handler {
            try {

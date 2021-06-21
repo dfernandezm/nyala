@@ -1,5 +1,6 @@
 package com.nyala.core.infrastructure.config
 
+import com.nyala.core.application.handler.OAuth2Handler
 import com.nyala.core.application.handler.StatusEndpointHandler
 import com.nyala.core.infrastructure.mail.ServerInfo
 import io.vertx.redis.RedisOptions
@@ -17,6 +18,7 @@ class HttpServerModule(private val vertx: Vertx) {
         single { provideRedisClient() }
         single { StatusEndpointHandler() }
         single { ServerInfo(vertx, context) }
+        single { OAuth2Handler(vertx) }
     }
 
     private fun provideRedisClient(): RedisClient {

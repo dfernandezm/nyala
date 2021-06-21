@@ -1,6 +1,7 @@
 package com.nyala.core.test.integration
 
 import com.nyala.core.application.Oauth2UrlRequest
+import com.nyala.core.application.dto.OAuthClientDto
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.vertx.junit5.VertxExtension
@@ -33,19 +34,20 @@ class Oauth2IT {
 
     @Test
     fun oauth2UrlTest() {
-        val oauth2UrlRequest = Oauth2UrlRequest(oauth2ClientId = "", oauth2ClientSecret = "", userId = "test")
+        val oauth2ClientDto = OAuthClientDto(clientId =  "", clientSecret = "")
+        val oauth2UrlRequest = Oauth2UrlRequest(oauth2ClientDto, userId = "test")
         RestAssured
                 .given()
-                .header("Accept-Encoding", "application/json")
-                .header("Content-Type", "application/json")
-                .log().all()
-                .body(oauth2UrlRequest)
+                    .header("Accept-Encoding", "application/json")
+                    .header("Content-Type", "application/json")
+                    .log().all()
+                    .body(oauth2UrlRequest)
                 .`when`()
-                .post("/oauth2/authUrl")
+                    .post("/oauth2/authUrl")
                 .then().log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .contentType(ContentType.JSON)
-                .body("authUrl", startsWith("https://accounts.google.com/o/oauth2/auth"))
+                    .assertThat()
+                    .statusCode(HttpStatus.SC_OK)
+                    .contentType(ContentType.JSON)
+                    .body("authUrl", startsWith("https://accounts.google.com/o/oauth2/auth"))
     }
 }

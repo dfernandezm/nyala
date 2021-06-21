@@ -1,7 +1,7 @@
 package com.nyala.core.application
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.nyala.core.application.dto.OAuthClientDto
 
-data class Oauth2UrlRequest(@JsonProperty("oauth2ClientId") val oauth2ClientId: String,
-                            @JsonProperty("oauth2ClientSecret") val oauth2ClientSecret: String,
+data class Oauth2UrlRequest(@JsonProperty("oauth2Client") val oauth2Client: OAuthClientDto,
                             @JsonProperty("userId") val userId: String)
