@@ -16,7 +16,7 @@ class HttpServerModule(private val vertx: Vertx) {
     val httpServerModule = module {
         single { provideRedisClient() }
         single { StatusEndpointHandler() }
-        single { ServerInfo(context) }
+        single { ServerInfo(vertx, context) }
     }
 
     private fun provideRedisClient(): RedisClient {

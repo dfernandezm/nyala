@@ -3,6 +3,7 @@ package com.nyala.core.application.verticle
 import com.nyala.core.application.handler.StatusEndpointHandler
 import com.nyala.common.shutdown.ShutdownUtils
 import com.nyala.common.vertx.FailureExceptionHandler
+import com.nyala.common.vertx.verticle.SharedCache
 import com.nyala.core.infrastructure.adapter.m3u.parser.M3uParser
 import com.nyala.core.infrastructure.config.HttpServerModule
 import com.nyala.core.infrastructure.di.IsolatedKoinVerticle
@@ -103,6 +104,9 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
         router.route().produces("application/json")
         router.route().handler { context: RoutingContext ->
             context.response().headers().add("Content-Type", "application/json")
+            val currentUri = context.request().absoluteURI()
+            log.info("Setting up current URI: {}", currentUri)
+            SharedCache.putData(vertx, SharedCache.CURRENT_SERVER_URI_KEY_NAME, currentUri)
             context.next()
         }
 
@@ -110,7 +114,6 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
         router.route().handler(BodyHandler.create())
 
         router.get("/channels/:channelId").handler { handleGetChannels(it) }
-
         router.post("/oauth2/authUrl").handler { handleGenerateAuthUrl(it) }
         router.post("/oauth2/validateCode")
 
@@ -170,9 +173,6 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
     private fun handleGenerateAuthUrl(routingContext: RoutingContext) {
         val oauth2UrlRequestJson = routingContext.bodyAsJson
         val response = routingContext.response()
-        val currentUri = routingContext.request().absoluteURI()
-        vertx.orCreateContext.put("currentUri", currentUri)
-
         vertx.eventBus().rxSend<JsonObject>("oauth2.authUrl", oauth2UrlRequestJson)
                 .subscribe({ message ->
                     log.info("Sent oauth2Request")

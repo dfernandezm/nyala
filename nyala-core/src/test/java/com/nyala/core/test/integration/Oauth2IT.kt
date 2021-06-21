@@ -6,8 +6,7 @@ import io.restassured.http.ContentType
 import io.vertx.junit5.VertxExtension
 import org.apache.http.HttpStatus
 import org.hamcrest.CoreMatchers
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -15,8 +14,22 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(VertxExtension::class)
-//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Oauth2IT {
+
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        internal fun setup() {
+            IntegrationTestHelper.configureIntegrationTest()
+        }
+
+        @AfterAll
+        @JvmStatic
+        internal fun tearDown() {
+            IntegrationTestHelper.tearDownIntegrationTest()
+        }
+    }
 
     @Test
     fun oauth2UrlTest() {
@@ -33,20 +46,6 @@ class Oauth2IT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .contentType(ContentType.JSON)
-                .body("authUrl", containsString("https://"))
-    }
-
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        internal fun setup() {
-            IntegrationTestHelper.configureIntegrationTest()
-        }
-
-        @AfterAll
-        @JvmStatic
-        internal fun tearDown() {
-            IntegrationTestHelper.tearDownIntegrationTest()
-        }
+                .body("authUrl", startsWith("https://accounts.google.com/o/oauth2/auth"))
     }
 }
