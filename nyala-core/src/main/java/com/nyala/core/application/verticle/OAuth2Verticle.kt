@@ -9,6 +9,7 @@ import com.nyala.core.infrastructure.di.IsolatedKoinVerticle
 import com.nyala.core.infrastructure.di.KoinDIFactory
 import com.nyala.core.infrastructure.oauth2.OAuth2CredentialProvider
 import io.vertx.core.Future
+
 import io.vertx.core.json.JsonObject
 import org.koin.core.component.inject
 import org.slf4j.LoggerFactory
@@ -35,24 +36,27 @@ class OAuth2Verticle: IsolatedKoinVerticle() {
 
     override fun start(startFuture: Future<Void>?) {
         startDependencyInjection()
-        vertx.eventBus().consumer<JsonObject>("oauth2.authUrl") { message ->
-            val oauth2UrlRequest = message.body().mapTo(Oauth2UrlRequest::class.java)
-            log.info("Received - {}", oauth2UrlRequest)
-            val oauth2ClientDto = oauth2UrlRequest.oauth2Client
-            val oAuth2Client = OAuth2Client(
-                    clientId = oauth2ClientDto.clientId,
-                    clientSecret = oauth2ClientDto.clientSecret,
-                    scopes = setOf(),
-                    applicationName = "nyala"
-            )
+        vertx.eventBus().consumer<JsonObject>("oauth2.authUrl")
+                .toObservable()
+                .doOnNext { message ->
+                    val oauth2UrlRequest = message.body().mapTo(Oauth2UrlRequest::class.java)
+                    log.info("Received - {}", oauth2UrlRequest)
+                    val oauth2ClientDto = oauth2UrlRequest.oauth2Client
+                    val oAuth2Client = OAuth2Client(
+                            clientId = oauth2ClientDto.clientId,
+                            clientSecret = oauth2ClientDto.clientSecret,
+                            scopes = setOf(),
+                            applicationName = "nyala"
+                    )
 
-            val authUrl = oAuth2CredentialProvider.generateAuthUrl(oAuth2Client)
-            val resp = JsonObject().put("authUrl", authUrl)
-            message.rxReply<JsonObject>(resp).subscribe ({
-                log.info("Responding...")
-            }, {
-                log.error("Error occurred", it)
-            })
-        }
+                    val authUrl = oAuth2CredentialProvider.generateAuthUrl(oAuth2Client)
+                    val resp = JsonObject().put("authUrl", authUrl)
+                    // See https://stackoverflow.com/questions/49449257/vertx-timeout-in-message-reply
+                    message.rxReply<JsonObject>(resp)
+                            .subscribe(
+                            { a -> a.reply(resp)},
+                            { err -> log.error("Error", err)})
+                    //message.reply(resp)
+                }.subscribe()
     }
 }

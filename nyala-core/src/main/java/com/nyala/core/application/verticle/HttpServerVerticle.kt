@@ -118,7 +118,8 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
 
         router.get("/channels/:channelId").handler { handleGetChannels(it) }
         router.post("/oauth2/authUrl").handler(oauth2Handler)
-        router.post("/oauth2/validateCode").handler(oauth2Handler)
+        // TODO: implement validation
+        router.post("/oauth2/validate/code").handler(oauth2Handler)
 
         router["/_status"].handler {
            try {
@@ -170,21 +171,6 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
                 }, {
                     log.error("Error occurred", it)
                     response.setStatusCode(500).end(Json.encodePrettily(JsonObject(it.message)))
-                })
-    }
-
-    private fun handleGenerateAuthUrl(routingContext: RoutingContext) {
-        val oauth2UrlRequestJson = routingContext.bodyAsJson
-        val response = routingContext.response()
-        vertx.eventBus().rxSend<JsonObject>("oauth2.authUrl", oauth2UrlRequestJson)
-                .subscribe({ message ->
-                    log.info("Sent oauth2Request")
-                    response
-                            .putHeader("content-type", "application/json")
-                            .end(Json.encodePrettily(message.body()))
-                }, {
-                    log.error("Error occurred", it)
-                    sendErrorCode(response, it)
                 })
     }
 
