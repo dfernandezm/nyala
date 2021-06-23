@@ -35,12 +35,23 @@ class OAuth2Handler(private val vertx: Vertx): Handler<RoutingContext> {
      */
     override fun handle(routingContext: RoutingContext) {
         val url = routingContext.request().absoluteURI()
-        if (url.contains("/authUrl")) {
-            val oauth2UrlRequestJson = routingContext.bodyAsJson
-            val response = routingContext.response()
+        val oauth2UrlRequestJson = routingContext.bodyAsJson
+        val response = routingContext.response()
 
+        if (url.contains("/authUrl")) {
             // RxSend passes internally a replyHandler, so that needs to be replied to,
             // otherwise the call hangs even after the response was sent
+            vertx.eventBus().rxSend<JsonObject>(authUrlEventBusRoute, oauth2UrlRequestJson)
+                    .subscribe ({ reply ->
+                        replyToClose(reply)
+                        writeResponseAsJson(response, reply)
+                    }, { error ->
+                        log.error("Error occurred", error)
+                        sendErrorCode(response, 500, error)
+                    })
+        }
+
+        if (url.contains("/validate/code")) {
             vertx.eventBus().rxSend<JsonObject>(authUrlEventBusRoute, oauth2UrlRequestJson)
                     .subscribe ({ reply ->
                         replyToClose(reply)
@@ -62,6 +73,13 @@ class OAuth2Handler(private val vertx: Vertx): Handler<RoutingContext> {
                 .end(Json.encodePrettily(reply.body()))
     }
 
+    /**
+     *
+     * This is an artifact needed for rxSend not to hang, it's not needed for
+     * core send(...)
+     * See: https://stackoverflow.com/questions/49449257/vertx-timeout-in-message-reply
+     *
+     */
     private fun replyToClose(reply: Message<JsonObject>) {
         reply.rxReply<String>("Success").subscribe()
     }

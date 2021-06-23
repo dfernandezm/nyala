@@ -9,6 +9,8 @@ import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.common.annotations.VisibleForTesting
 import com.nyala.core.domain.model.oauth2.OAuth2Client
 import com.nyala.core.domain.model.oauth2.OAuth2Credential
+import com.nyala.core.infrastructure.hash.HashUtils
+import org.apache.commons.codec.digest.Sha2Crypt
 import org.slf4j.LoggerFactory
 
 import java.io.File

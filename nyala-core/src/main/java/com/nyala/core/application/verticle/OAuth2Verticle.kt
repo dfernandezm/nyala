@@ -1,9 +1,7 @@
 package com.nyala.core.application.verticle
 
-import com.nyala.core.application.Oauth2UrlRequest
-import com.nyala.core.domain.model.Channel
+import com.nyala.core.application.OAuth2UrlRequest
 import com.nyala.core.domain.model.oauth2.OAuth2Client
-import com.nyala.core.infrastructure.config.HttpServerModule
 import com.nyala.core.infrastructure.config.Oauth2Module
 import com.nyala.core.infrastructure.di.IsolatedKoinVerticle
 import com.nyala.core.infrastructure.di.KoinDIFactory
@@ -39,24 +37,38 @@ class OAuth2Verticle: IsolatedKoinVerticle() {
         vertx.eventBus().consumer<JsonObject>("oauth2.authUrl")
                 .toObservable()
                 .doOnNext { message ->
-                    val oauth2UrlRequest = message.body().mapTo(Oauth2UrlRequest::class.java)
+
+                    val oauth2UrlRequest = message.body().mapTo(OAuth2UrlRequest::class.java)
                     log.info("Received - {}", oauth2UrlRequest)
                     val oauth2ClientDto = oauth2UrlRequest.oauth2Client
+                    val scopes = oauth2ClientDto.scopes ?: setOf()
+
                     val oAuth2Client = OAuth2Client(
                             clientId = oauth2ClientDto.clientId,
                             clientSecret = oauth2ClientDto.clientSecret,
-                            scopes = setOf(),
+                            redirectUri = oauth2ClientDto.redirectUri,
+                            scopes = scopes,
                             applicationName = "nyala"
                     )
 
                     val authUrl = oAuth2CredentialProvider.generateAuthUrl(oAuth2Client)
                     val resp = JsonObject().put("authUrl", authUrl)
-                    // See https://stackoverflow.com/questions/49449257/vertx-timeout-in-message-reply
+
                     message.rxReply<JsonObject>(resp)
                             .subscribe(
                             { a -> a.reply(resp)},
                             { err -> log.error("Error", err)})
-                    //message.reply(resp)
+
+                    //TODO: respond with error
                 }.subscribe()
+
+        vertx.eventBus().consumer<JsonObject>("oauth2.validateCode")
+                .toObservable()
+                .doOnNext { message ->
+                    log.info("Message: {}", message)
+                    //oAuth2CredentialProvider.validateAuthorizationCode()
+                    message.rxReply<JsonObject>(JsonObject().put("message", "success"))
+                }.subscribe()
+
     }
 }

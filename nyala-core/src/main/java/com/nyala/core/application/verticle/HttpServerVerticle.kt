@@ -119,7 +119,7 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
         router.get("/channels/:channelId").handler { handleGetChannels(it) }
         router.post("/oauth2/authUrl").handler(oauth2Handler)
         // TODO: implement validation
-        router.post("/oauth2/validate/code").handler(oauth2Handler)
+        router.get("/oauth2/validate/code").handler(oauth2Handler)
 
         router["/_status"].handler {
            try {
