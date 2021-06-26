@@ -55,15 +55,21 @@ class CredentialHelperTest {
         val credentialHelperSpy = spy(credentialHelper)
 
         val tokenResponseCaptor = argumentCaptor<TokenResponse>()
-        val oauth2ClientCaptor = argumentCaptor<OAuth2Client>()
+        val oauth2ClientIdCaptor = argumentCaptor<String>()
         val userIdCaptor = argumentCaptor<String>()
+
+        val authorizationCodeFlow = Mockito.mock(AuthorizationCodeFlow::class.java)
+        val credential = Mockito.mock(Credential::class.java)
+        doReturn(credential).whenever(authorizationCodeFlow).createAndStoreCredential(any(), any())
+        doReturn(authorizationCodeFlow).whenever(credentialHelperSpy).getCodeFlow(any())
+
 
         // When
         credentialHelperSpy.regenerateCredentialFrom(oauth2Client, aOAuth2Tokens, userId)
 
         verify(credentialHelperSpy, times(1)).generateCodeFlow(oauth2Client)
         verify(credentialHelperSpy, times(1)).storeCredential(
-                        oauth2ClientCaptor.capture(), userIdCaptor.capture(),
+                        oauth2ClientIdCaptor.capture(), userIdCaptor.capture(),
                         tokenResponseCaptor.capture())
 
         val capturedTokenResponse = tokenResponseCaptor.lastValue
@@ -110,7 +116,8 @@ class CredentialHelperTest {
 
         // When: validating the auth code
         val exception = assertThrows<RuntimeException> {
-            credentialHelper.validateAuthorizationCode(oauth2Client, "code")
+            credentialHelper.validateAuthorizationCode(oauth2Client.clientId,
+                    "aRedirectUri","code")
         }
 
         // Then: An error occurs
@@ -125,6 +132,8 @@ class CredentialHelperTest {
         val anUserId = "anUserId"
 
         val credentialHelper = GoogleCredentialHelper()
+        credentialHelper.generateCodeFlow(oauth2Client)
+
         val credentialHelperSpy = spy(credentialHelper)
 
         val tokenResponse = Mockito.mock(TokenResponse::class.java)
@@ -132,7 +141,7 @@ class CredentialHelperTest {
         whenever(tokenResponse.refreshToken).thenReturn("aRefreshToken")
 
         // When
-        credentialHelperSpy.storeCredential(oauth2Client, anUserId, tokenResponse)
+        credentialHelperSpy.storeCredential(oauth2Client.clientId, anUserId, tokenResponse)
 
         // Then: credential exists
         val credential = credentialHelperSpy.getStoredCredential(oauth2Client.clientId, anUserId)

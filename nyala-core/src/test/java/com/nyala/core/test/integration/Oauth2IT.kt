@@ -1,7 +1,7 @@
 package com.nyala.core.test.integration
 
-import com.nyala.core.application.OAuth2UrlRequest
-import com.nyala.core.application.dto.OAuth2ClientDto
+import com.nyala.core.application.dto.OAuth2GeneralAuthUrlInput
+import com.nyala.core.application.dto.OAuth2ClientInput
 import com.nyala.core.domain.model.oauth2.OAuth2Scopes
 import io.restassured.RestAssured.given
 import io.restassured.builder.RequestSpecBuilder
@@ -39,10 +39,10 @@ class Oauth2IT {
 
     @Test
     fun oauth2UrlSmokeTestWithoutScopes() {
-        val oauth2ClientDto = OAuth2ClientDto(
+        val oauth2ClientDto = OAuth2ClientInput(
                 clientId =  "withoutScopes",
                 clientSecret = "aSecret")
-        val oauth2UrlRequest = OAuth2UrlRequest(oauth2ClientDto,
+        val oauth2UrlRequest = OAuth2GeneralAuthUrlInput(oauth2ClientDto,
                 userId = "test1")
 
         given()
@@ -58,11 +58,11 @@ class Oauth2IT {
 
     @Test
     fun oauth2UrlSmokeTestWithScopes() {
-        val oauth2ClientDto = OAuth2ClientDto(
+        val oauth2ClientDto = OAuth2ClientInput(
                 clientId =  "withScopes",
                 clientSecret = "anotherSecret",
                 scopes = OAuth2Scopes.forFullGmailAccess())
-        val oauth2UrlRequest = OAuth2UrlRequest(oauth2ClientDto,
+        val oauth2UrlRequest = OAuth2GeneralAuthUrlInput(oauth2ClientDto,
                 userId = "test2")
 
         given()
@@ -87,7 +87,7 @@ class Oauth2IT {
                 .build()
     }
 
-    private fun oauth2Request(oauth2UrlRequest: OAuth2UrlRequest): RequestSpecification {
+    private fun oauth2Request(oauth2UrlRequest: OAuth2GeneralAuthUrlInput): RequestSpecification {
         return RequestSpecBuilder()
                 .addHeader("Accept-Encoding", "application/json")
                 .addHeader("Content-Type", "application/json")

@@ -47,6 +47,8 @@ class GoogleOAuth2CredentialProviderTest {
         assertClientIdIs(authUrl, validOauth2Client.clientId)
         assertRedirectUri(authUrl, expectedRedirectUri)
         assertScopesAre(authUrl, validOauth2Client.scopes)
+        assertThat(authUrl).contains("prompt=consent")
+        assertThat(authUrl).contains("access_type=offline")
     }
 
     /**
@@ -73,7 +75,7 @@ class GoogleOAuth2CredentialProviderTest {
         whenever(mockedServerInfo.currentUri()).thenReturn(aCurrentUri)
 
         val googleOAuth2CredentialProvider = GoogleOAuth2CredentialProvider(mockedCredentialHelper, mockedServerInfo)
-        val oauth2Credential = googleOAuth2CredentialProvider.validateAuthorizationCode(aUserId, validOauth2Client, aValidAuthorizationCode)
+        val oauth2Credential = googleOAuth2CredentialProvider.validateCode(aUserId, aValidAuthorizationCode)
 
         assertThat(userIdCaptor.firstValue).isEqualTo(aUserId)
         assertThat(oauth2Credential).isNotNull
@@ -104,7 +106,7 @@ class GoogleOAuth2CredentialProviderTest {
         // When: validating a returned auth code
         val googleOAuth2CredentialProvider = GoogleOAuth2CredentialProvider(spiedCredentialHelper, mockedServerInfo)
         val exception = assertThrows<RuntimeException> {
-            googleOAuth2CredentialProvider.validateAuthorizationCode(aUserId, oauth2Client, authCode)
+            googleOAuth2CredentialProvider.validateCode(aUserId, authCode)
         }
 
         // Then: an error occurs for the passed clientId
@@ -129,14 +131,19 @@ class GoogleOAuth2CredentialProviderTest {
         whenever(aValidResponse.refreshToken).thenReturn(tokenData.refreshToken)
         whenever(aValidResponse.scope).thenReturn(tokenData.scopes)
 
-        whenever(mockedCredentialHelper.validateAuthorizationCode(oauth2Client, authCode))
+        val redirectUri = "http://redirectUri"
+
+        whenever(mockedCredentialHelper
+                .validateAuthorizationCode(oauth2Client.clientId, redirectUri, authCode))
                 .thenReturn(aValidResponse)
 
         val tokenResponseCaptor = argumentCaptor<TokenResponse>()
-        val oauth2ClientCaptor = argumentCaptor<OAuth2Client>()
+        val oauth2ClientCaptor = argumentCaptor<String>()
 
         doNothing().whenever(mockedCredentialHelper)
-                .storeCredential(oauth2ClientCaptor.capture(), userIdCaptor.capture(), tokenResponseCaptor.capture())
+                .storeCredential(oauth2ClientCaptor.capture(),
+                        userIdCaptor.capture(),
+                        tokenResponseCaptor.capture())
 
        return mockedCredentialHelper
     }

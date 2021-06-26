@@ -25,10 +25,19 @@ import lombok.extern.slf4j.Slf4j
 import org.koin.core.component.inject
 import org.slf4j.LoggerFactory.getLogger
 import rx.Single
+import java.io.File
 import java.util.*
 
 /**
- * Referenced in the config.json
+ * This Verticle starts the main HTTP Server where the main router is mounted and
+ * the endpoints of the API are defined and handled. It acts as a broker for HTTP requests
+ *
+ * - Receives the request
+ * - Delegates to EventBus route
+ *
+ * Each API endpoint delegates it's handling to a XXXHandler, which, in turn, uses
+ * the EventBus to send a message containing the request information. A specific
+ * verticle picks up the request via an EventBus consumer and replies back.
  *
  */
 @Slf4j
@@ -51,7 +60,11 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
         startHttpServer(startFuture)
     }
 
-    // https://stackoverflow.com/questions/63359639/vertx-webclient-shared-vs-single-across-multiple-verticles
+    /**
+     * The appName is being generated here so dependency graph is unique per verticle instance
+     *
+     * See: https://stackoverflow.com/questions/63359639/vertx-webclient-shared-vs-single-across-multiple-verticles
+     */
     override fun getAppName(): String {
         val appName = "HttpServer:$uuid"
         log.info("App Name: $appName")
@@ -118,8 +131,8 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
 
         router.get("/channels/:channelId").handler { handleGetChannels(it) }
         router.post("/oauth2/authUrl").handler(oauth2Handler)
-        // TODO: implement validation
         router.get("/oauth2/validate/code").handler(oauth2Handler)
+        router.post("/m3u").handler { ctx: RoutingContext -> handleM3uUpload(ctx) }
 
         router["/_status"].handler {
            try {
@@ -129,7 +142,6 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
            }
         }
 
-        router.post("/m3u").handler { ctx: RoutingContext -> handleM3uUpload(ctx) }
         return router
     }
 
