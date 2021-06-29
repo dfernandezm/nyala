@@ -1,6 +1,7 @@
 package com.nyala.core.application.verticle
 
-import com.nyala.core.application.dto.OAuth2GeneralAuthUrlInput
+import com.nyala.core.application.dto.OAuth2CredentialOutput
+import com.nyala.core.application.dto.OAuth2GenerateAuthUrlInput
 import com.nyala.core.application.dto.OAuth2ValidateCodeInput
 import com.nyala.core.application.handler.OAuth2Handler
 import com.nyala.core.domain.model.oauth2.OAuth2Client
@@ -41,7 +42,7 @@ class OAuth2Verticle: IsolatedKoinVerticle() {
                 .toObservable()
                 .doOnNext { message ->
 
-                    val oauth2UrlRequest = message.body().mapTo(OAuth2GeneralAuthUrlInput::class.java)
+                    val oauth2UrlRequest = message.body().mapTo(OAuth2GenerateAuthUrlInput::class.java)
                     log.info("Received - {}", oauth2UrlRequest)
 
                     val oauth2ClientDto = oauth2UrlRequest.oauth2Client
@@ -76,10 +77,17 @@ class OAuth2Verticle: IsolatedKoinVerticle() {
                     try {
                         val oauth2ValidateCodeRequest = message.body().mapTo(OAuth2ValidateCodeInput::class.java)
                         log.info("Validation Request: {}", oauth2ValidateCodeRequest)
-                        oAuth2CredentialProvider.validateCode(
+                        val oauth2Credential = oAuth2CredentialProvider.validateCode(
                                 oauth2ValidateCodeRequest.state,
                                 oauth2ValidateCodeRequest.code)
-                        message.reply(JsonObject().put("message", "success"))
+
+                        log.info("Successful validation, returning OAuth2 credential")
+                        val oAuth2CredentialOutput = OAuth2CredentialOutput(
+                                accessToken = oauth2Credential.accessToken,
+                                refreshToken = oauth2Credential.refreshToken,
+                                expirationTimeSeconds = oauth2Credential.expirationTimeSeconds)
+                        val oauth2CredentialJson = JsonObject.mapFrom(oAuth2CredentialOutput)
+                        message.reply(oauth2CredentialJson)
                     } catch (e: Exception) {
                         log.error("Error decoding message", e)
                         message.fail(500, "Error validating code: " + e.message)

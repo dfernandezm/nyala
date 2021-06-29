@@ -1,6 +1,6 @@
 package com.nyala.core.test.integration
 
-import com.nyala.core.application.dto.OAuth2GeneralAuthUrlInput
+import com.nyala.core.application.dto.OAuth2GenerateAuthUrlInput
 import com.nyala.core.application.dto.OAuth2ClientInput
 import com.nyala.core.domain.model.oauth2.OAuth2Scopes
 import io.restassured.RestAssured.given
@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
-
 
 @ExtendWith(VertxExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -42,7 +41,8 @@ class Oauth2IT {
         val oauth2ClientDto = OAuth2ClientInput(
                 clientId =  "withoutScopes",
                 clientSecret = "aSecret")
-        val oauth2UrlRequest = OAuth2GeneralAuthUrlInput(oauth2ClientDto,
+
+        val oauth2UrlRequest = OAuth2GenerateAuthUrlInput(oauth2ClientDto,
                 userId = "test1")
 
         given()
@@ -62,8 +62,8 @@ class Oauth2IT {
                 clientId =  "withScopes",
                 clientSecret = "anotherSecret",
                 scopes = OAuth2Scopes.forFullGmailAccess())
-        val oauth2UrlRequest = OAuth2GeneralAuthUrlInput(oauth2ClientDto,
-                userId = "test2")
+
+        val oauth2UrlRequest = OAuth2GenerateAuthUrlInput(oauth2ClientDto, userId = "test2")
 
         given()
             .spec(oauth2Request(oauth2UrlRequest))
@@ -76,8 +76,7 @@ class Oauth2IT {
         .and()
             .body("authUrl", startsWith("https://accounts.google.com/o/oauth2/auth"))
             .body("authUrl", containsString("scope="))
-        //TODO: redirect uri check
-
+                .body("authUrl", containsString("redirect_uri="))
     }
 
     private fun okResponse(): ResponseSpecification {
@@ -87,7 +86,7 @@ class Oauth2IT {
                 .build()
     }
 
-    private fun oauth2Request(oauth2UrlRequest: OAuth2GeneralAuthUrlInput): RequestSpecification {
+    private fun oauth2Request(oauth2UrlRequest: OAuth2GenerateAuthUrlInput): RequestSpecification {
         return RequestSpecBuilder()
                 .addHeader("Accept-Encoding", "application/json")
                 .addHeader("Content-Type", "application/json")
