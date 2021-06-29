@@ -5,12 +5,12 @@ import com.nyala.core.infrastructure.oauth2.google.GoogleOAuth2CredentialProvide
 import com.nyala.core.infrastructure.mail.ServerInfo
 import com.nyala.core.infrastructure.oauth2.google.GoogleCredentialHelper
 import com.nyala.core.domain.model.oauth2.OAuth2Client
+import com.nyala.core.infrastructure.oauth2.OAuth2Cache
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.kotlin.*
 import java.lang.RuntimeException
@@ -37,7 +37,8 @@ class GoogleOAuth2CredentialProviderTest {
         whenever(mockedServerInfo.currentUri()).thenReturn(expectedRedirectUri)
 
         val credentialHelper = GoogleCredentialHelper()
-        val googleOAuth2CredentialProvider = GoogleOAuth2CredentialProvider(credentialHelper, mockedServerInfo)
+        val oauth2Cache = OAuth2Cache()
+        val googleOAuth2CredentialProvider = GoogleOAuth2CredentialProvider(credentialHelper, oauth2Cache, mockedServerInfo)
 
         val authUrl = googleOAuth2CredentialProvider.generateAuthUrl(validOauth2Client)
 
@@ -52,7 +53,12 @@ class GoogleOAuth2CredentialProviderTest {
     }
 
     /**
-     *
+     * Given a valid oauth2 client is provided
+     * And an auth code has been requested
+     * When validating the returned code
+     * Then validation passes
+     * And accessToken is issued
+     * And refreshToken is issued
      */
     @Test
     fun validateAuthorizationCodeIsSuccessFul() {
@@ -61,23 +67,31 @@ class GoogleOAuth2CredentialProviderTest {
         val aUserId = "aUserId";
         val aCurrentUri = "http://anUri"
 
-        val userIdCaptor = argumentCaptor<String>()
-
         val testTokenData = tokenData()
-        val mockedCredentialHelper =
-                mockCredentialHelper(
-                        oauth2Client = validOauth2Client,
-                        authCode = aValidAuthorizationCode,
-                        tokenData = testTokenData,
-                        userIdCaptor = userIdCaptor)
+        val aValidResponse = mockTokenResponseData(testTokenData)
+
+        val authorizationCodeTokenRequest = Mockito.mock(AuthorizationCodeTokenRequest::class.java)
+        whenever(authorizationCodeTokenRequest.setRedirectUri(any())).thenReturn(authorizationCodeTokenRequest)
+        whenever(authorizationCodeTokenRequest.execute()).thenReturn(aValidResponse)
+
+        val authorizationCodeFlow = Mockito.mock(AuthorizationCodeFlow::class.java)
+        whenever(authorizationCodeFlow.newTokenRequest(any())).thenReturn(authorizationCodeTokenRequest)
+
+        val credential = Mockito.mock(Credential::class.java)
+        whenever(authorizationCodeFlow.createAndStoreCredential(any(), any())).thenReturn(credential)
+
+        val credentialHelper = GoogleCredentialHelper()
+        val credentialHelperSpy = spy(credentialHelper)
+        doReturn(authorizationCodeFlow).whenever(credentialHelperSpy).getCodeFlow(any())
 
         val mockedServerInfo = Mockito.mock(ServerInfo::class.java)
         whenever(mockedServerInfo.currentUri()).thenReturn(aCurrentUri)
 
-        val googleOAuth2CredentialProvider = GoogleOAuth2CredentialProvider(mockedCredentialHelper, mockedServerInfo)
+        val oauth2Cache = mockOAuth2Cache(validOauth2Client.clientId, aCurrentUri)
+
+        val googleOAuth2CredentialProvider = GoogleOAuth2CredentialProvider(credentialHelperSpy, oauth2Cache, mockedServerInfo)
         val oauth2Credential = googleOAuth2CredentialProvider.validateCode(aUserId, aValidAuthorizationCode)
 
-        assertThat(userIdCaptor.firstValue).isEqualTo(aUserId)
         assertThat(oauth2Credential).isNotNull
         assertThat(oauth2Credential.accessToken).isEqualTo(testTokenData.accessToken)
         assertThat(oauth2Credential.refreshToken).isEqualTo(testTokenData.refreshToken)
@@ -87,15 +101,20 @@ class GoogleOAuth2CredentialProviderTest {
     fun validationIsNotSuccessfulWhenErrorsHappenedDuringTokenRequest() {
 
         val (_, oauth2Client) = aValidOauth2Client(null)
+        val clientId = oauth2Client.clientId
+        val redirectUri = "https://redirectUri"
 
-        // Given: an error is thrown when getting a token
+        // Given: auth Url has been generated and invoked
+        // And: an error is thrown when getting a token
+        val oauth2CacheMock = mockOAuth2Cache(clientId, redirectUri)
+
         val authCodeFlow = Mockito.mock(AuthorizationCodeFlow::class.java)
         val tokenRequest = Mockito.mock(AuthorizationCodeTokenRequest::class.java)
         whenever(tokenRequest.execute()).thenThrow(TokenResponseException::class.java)
         whenever(authCodeFlow.newTokenRequest(any())).thenReturn(tokenRequest)
 
         val spiedCredentialHelper = spy(GoogleCredentialHelper())
-        doReturn(authCodeFlow).whenever(spiedCredentialHelper).generateCodeFlow(oauth2Client)
+        doReturn(authCodeFlow).whenever(spiedCredentialHelper).getCodeFlow(oauth2Client.clientId)
 
         val mockedServerInfo = Mockito.mock(ServerInfo::class.java)
         whenever(mockedServerInfo.currentUri()).thenReturn("uri")
@@ -104,13 +123,20 @@ class GoogleOAuth2CredentialProviderTest {
         val aUserId = "aUserId";
 
         // When: validating a returned auth code
-        val googleOAuth2CredentialProvider = GoogleOAuth2CredentialProvider(spiedCredentialHelper, mockedServerInfo)
+        val googleOAuth2CredentialProvider = GoogleOAuth2CredentialProvider(spiedCredentialHelper, oauth2CacheMock, mockedServerInfo)
         val exception = assertThrows<RuntimeException> {
             googleOAuth2CredentialProvider.validateCode(aUserId, authCode)
         }
 
         // Then: an error occurs for the passed clientId
         assertThat(exception.message).contains("Error validating code for clientId")
+    }
+
+    private fun mockOAuth2Cache(clientId: String, redirectUri: String): OAuth2Cache {
+        val oauth2CacheMock = Mockito.mock(OAuth2Cache::class.java)
+        whenever(oauth2CacheMock.findClientId(any())).thenReturn(clientId)
+        whenever(oauth2CacheMock.findRedirectUri(any())).thenReturn(redirectUri)
+        return oauth2CacheMock
     }
 
     private fun assertScopesAre(authUrl: String, scopes: Set<String>) {
@@ -125,11 +151,7 @@ class GoogleOAuth2CredentialProviderTest {
                                      tokenData: TokenData): GoogleCredentialHelper {
 
         val mockedCredentialHelper = Mockito.mock(GoogleCredentialHelper::class.java)
-        val aValidResponse = Mockito.mock(TokenResponse::class.java)
-
-        whenever(aValidResponse.accessToken).thenReturn(tokenData.accessToken)
-        whenever(aValidResponse.refreshToken).thenReturn(tokenData.refreshToken)
-        whenever(aValidResponse.scope).thenReturn(tokenData.scopes)
+        val aValidResponse = mockTokenResponseData(tokenData)
 
         val redirectUri = "http://redirectUri"
 
@@ -150,11 +172,11 @@ class GoogleOAuth2CredentialProviderTest {
 
     private data class TokenData(val accessToken: String, val refreshToken: String, val scopes: String)
 
-    private fun mockTokenResponse(tokenData: TokenData): TokenResponse {
+    private fun mockTokenResponseData(testTokenData: TokenData): TokenResponse? {
         val aValidResponse = Mockito.mock(TokenResponse::class.java)
-        whenever(aValidResponse.accessToken).thenReturn(tokenData.accessToken)
-        whenever(aValidResponse.refreshToken).thenReturn(tokenData.refreshToken)
-        whenever(aValidResponse.scope).thenReturn(tokenData.scopes)
+        whenever(aValidResponse.accessToken).thenReturn(testTokenData.accessToken)
+        whenever(aValidResponse.refreshToken).thenReturn(testTokenData.refreshToken)
+        whenever(aValidResponse.scope).thenReturn(testTokenData.scopes)
         return aValidResponse
     }
 

@@ -22,6 +22,7 @@ class GoogleCredentialHelper {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         @JvmStatic
         private val log = LoggerFactory.getLogger(javaClass.enclosingClass)
+        private const val TOKENS_FILE_STORE = "/tmp/tokens"
     }
 
     // should use sharedCache
@@ -35,7 +36,8 @@ class GoogleCredentialHelper {
                         "clientId $oAuth2ClientId, regenerate code again")
 
         try {
-            val response = flow.newTokenRequest(authorizationCode)?.setRedirectUri(redirectUri)?.execute()
+            val tokenRequest = flow.newTokenRequest(authorizationCode).setRedirectUri(redirectUri)
+            val response = tokenRequest?.execute()
             validationResponseCache[oAuth2ClientId] = response!!
             return response
         } catch (e: Exception) {
@@ -70,7 +72,7 @@ class GoogleCredentialHelper {
                 oAuth2Client.clientId,
                 GoogleOAuthConstants.AUTHORIZATION_SERVER_URL)
                 .setScopes(oAuth2Client.scopes)
-                .setDataStoreFactory(FileDataStoreFactory(File("/tmp/tokens")))
+                .setDataStoreFactory(FileDataStoreFactory(File(TOKENS_FILE_STORE)))
                 .build()
     }
 
