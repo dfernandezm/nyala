@@ -24,7 +24,7 @@ class OAuth2Handler(private val vertx: Vertx): Handler<RoutingContext> {
     }
 
     /**
-     * Handle:
+     * Handle generate auth url:
      *
      * <pre>
      * POST /oauth2/authUrl
@@ -34,7 +34,26 @@ class OAuth2Handler(private val vertx: Vertx): Handler<RoutingContext> {
      *      "clientSecret": "yyy"
      *   }
      * }
+     * ---
+     * {
+     *   "authUrl": "https://..."
+     * }
      * </pre>
+     *
+     *
+     * Handle code validation:
+     *
+     * <pre>
+     * GET /oauth2/validate/code?code=XXX&state=xxx
+     *
+     * {
+     *   "accessToken": "...",
+     *   "refreshToken": "...",
+     *   "expirationTime": 3600
+     * }
+     *
+     * </pre>
+     *
      */
     override fun handle(routingContext: RoutingContext) {
         val url = routingContext.request().absoluteURI()
@@ -53,6 +72,7 @@ class OAuth2Handler(private val vertx: Vertx): Handler<RoutingContext> {
                         log.error("Error occurred", error)
                         sendErrorCode(response, 500, error)
                     })
+
         }
 
         if (url.contains("/validate/code")) {
