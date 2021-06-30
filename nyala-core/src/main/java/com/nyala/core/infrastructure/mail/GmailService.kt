@@ -9,7 +9,8 @@ import com.google.api.services.gmail.model.ModifyMessageRequest
 import com.nyala.core.infrastructure.mail.command.CleanupCommand
 import com.nyala.core.infrastructure.mail.command.MailAction
 import com.nyala.core.infrastructure.mail.command.Timeframe
-import com.nyala.core.infrastructure.mail.old.GoogleCredentialProvider
+import com.nyala.core.infrastructure.oauth2.google.LocalServerGoogleOAuth2Provider
+import com.nyala.core.infrastructure.oauth2.OAuth2CredentialProvider
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.ZoneId
@@ -39,7 +40,7 @@ class GmailService(private val credentialProvider: OAuth2CredentialProvider) {
                         request.readTimeout = TIMEOUT
                     }.transport
 
-            gmail = Gmail.Builder(httpTransport, GoogleCredentialProvider.JSON_FACTORY, credential)
+            gmail = Gmail.Builder(httpTransport, LocalServerGoogleOAuth2Provider.JSON_FACTORY, credential)
                     .setApplicationName(APPLICATION_NAME)
                     .build()
         }

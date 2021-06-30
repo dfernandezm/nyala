@@ -17,6 +17,15 @@
         }
       },
       {
+        "main": "com.nyala.core.application.verticle.OAuth2Verticle",
+        "options": {
+          "instances": 1,
+          "config": {
+            "http.port": 9004
+          }
+        }
+      },
+      {
         "main": "com.nyala.core.application.verticle.HttpServerVerticle",
         "options": {
           "instances": 4,

@@ -5,6 +5,7 @@ import io.restassured.RestAssured;
 import io.restassured.config.LogConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.redis.RedisOptions;
@@ -20,7 +21,6 @@ import java.net.ServerSocket;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-//@Slf4j
 public class IntegrationTestHelper {
 
     private static final String RESTASSURED_LOG_FILENAME = "restassured.log";
@@ -32,7 +32,6 @@ public class IntegrationTestHelper {
     private static final String CONFIG_JSON_KEY = "config";
     private static final String REDIS_CONFIGURATION_KEY = "redisConfiguration";
     private static Vertx vertx;
-    private static volatile boolean koinStarted = false;
 
     public static void configureIntegrationTest() {
         VertxTestContext vertxTestContext = new VertxTestContext();
@@ -57,12 +56,14 @@ public class IntegrationTestHelper {
 
                 // Multideploy class expects this structure
 
-
                 // Set HTTP server port
-                config.getJsonObject("config")
-                        .getJsonArray("verticles")
-                        .getJsonObject(1)
-                        .getJsonObject("options")
+                JsonArray verticles =  config.getJsonObject("config")
+                        .getJsonArray("verticles");
+
+                JsonObject httpServer = verticles
+                        .getJsonObject(2);
+
+                httpServer.getJsonObject("options")
                         .getJsonObject("config")
                         .put("http.port",  port);
 
@@ -71,10 +72,13 @@ public class IntegrationTestHelper {
                         .getJsonObject("redisConfiguration")
                         .put("port", redisPort);
 
-                config.getJsonObject("config")
-                        .getJsonArray("verticles")
-                        .getJsonObject(3)
-                        .getJsonObject("options")
+                JsonObject embeddedRedis = verticles
+                        .getJsonObject(4);
+
+//                config.getJsonObject("config")
+//                        .getJsonArray("verticles")
+//                        .getJsonObject(3)
+                embeddedRedis.getJsonObject("options")
                         .getJsonObject("config")
                         .put("port", redisPort);
 
@@ -98,6 +102,48 @@ public class IntegrationTestHelper {
                 context.failNow(result.cause());
             }
         });
+    }
+
+    private static void setEmbeddedRedisPort(int redisPort, JsonObject config) {
+        config.getJsonObject("config")
+                .getJsonArray("verticles")
+                .getJsonObject(4)
+                .getJsonObject("options")
+                .getJsonObject("config")
+                .put("port", redisPort);
+
+//        JsonArray verticles = config.getJsonObject("config").getJsonArray("verticles");
+//        int numberOfVerticles = verticles.size();
+//
+//        IntStream.range(0, numberOfVerticles)
+//                .mapToObj(verticles::getJsonObject)
+//                .filter(verticle -> verticle.getString("main").contains("EmbeddedRedis"))
+//                .map(httpServerVerticle -> httpServerVerticle.put("port", redisPort))
+//                .close();
+    }
+
+    private static void setRedisPort(int redisPort, JsonObject config) {
+        config.getJsonObject("config")
+                .getJsonObject("redisConfiguration")
+                .put("port", redisPort);
+    }
+
+    private static void setHttpServerPort(int port, JsonObject config) {
+        config.getJsonObject("config")
+                .getJsonArray("verticles")
+                .getJsonObject(2)
+                .getJsonObject("options")
+                .getJsonObject("config")
+                .put("http.port",  port);
+
+//        JsonArray verticles = config.getJsonObject("config").getJsonArray("verticles");
+//        int numberOfVerticles = verticles.size();
+//
+//        IntStream.range(0, numberOfVerticles)
+//                .mapToObj(verticles::getJsonObject)
+//                .filter(verticle -> verticle.getString("main").contains("HttpServerVerticle"))
+//                .map(httpServerVerticle -> httpServerVerticle.put("http.port", port))
+//                .close();
     }
 
     private static void configureRestAssured(final DeploymentOptions options) {

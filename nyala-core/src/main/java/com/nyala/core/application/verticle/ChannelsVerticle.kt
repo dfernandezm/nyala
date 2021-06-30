@@ -1,12 +1,16 @@
 package com.nyala.core.application.verticle
 
 import com.nyala.core.domain.model.Channel
+import com.nyala.core.infrastructure.di.IsolatedKoinVerticle
 import io.vertx.core.Future
 import io.vertx.core.json.JsonObject
+import io.vertx.reactivex.core.AbstractVerticle
+
+
 import org.koin.core.component.KoinComponent
 import org.slf4j.LoggerFactory
 
-class ChannelsVerticle: io.vertx.reactivex.core.AbstractVerticle(), KoinComponent {
+class ChannelsVerticle: IsolatedKoinVerticle() {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -14,14 +18,17 @@ class ChannelsVerticle: io.vertx.reactivex.core.AbstractVerticle(), KoinComponen
         private val log = LoggerFactory.getLogger(javaClass.enclosingClass)
     }
 
+    override fun getAppName(): String {
+        return "Channels"
+    }
 
-    override fun start(startFuture: Future<Void?>?) {
+    override fun start(startFuture: Future<Void>?) {
         vertx.eventBus().consumer<JsonObject>("channel")
         { m ->
             val channelId = m.body().getString("channelId")
             log.info("Received channel {}", channelId)
-            m.reply(handleGetChannels(channelId))
-            m.rxReply<JsonObject>(handleGetChannels(channelId))
+            m.reply(handleGetChannel(channelId))
+            m.rxReply<JsonObject>(handleGetChannel(channelId))
                     .subscribe( {
                         log.info("channels successfully recovered")
                     }, {
@@ -30,8 +37,8 @@ class ChannelsVerticle: io.vertx.reactivex.core.AbstractVerticle(), KoinComponen
         }
     }
 
-    private fun handleGetChannels(channelId: String): JsonObject {
-        log.info("ChannelId", channelId)
+    private fun handleGetChannel(channelId: String): JsonObject {
+        log.info("Channel ID requested {}", channelId)
         val channel = Channel(name = "Cuatro HD", country = "ES")
         return JsonObject().put("channel", JsonObject.mapFrom(channel))
     }

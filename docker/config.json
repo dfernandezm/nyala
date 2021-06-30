@@ -18,6 +18,13 @@
       }
     },
     {
+      "main": "com.nyala.core.application.verticle.OAuth2Verticle",
+      "options": {
+        "instances": 1,
+        "config": {}
+      }
+    },
+    {
       "main": "com.nyala.core.application.verticle.ChannelsVerticle",
       "options": {
         "instances": 1,

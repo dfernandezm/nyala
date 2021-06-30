@@ -2,6 +2,9 @@ package com.nyala.core.application.verticle
 
 import com.nyala.core.application.handler.StatusEndpointHandler
 import com.nyala.common.shutdown.ShutdownUtils
+import com.nyala.common.vertx.FailureExceptionHandler
+import com.nyala.common.vertx.verticle.SharedCache
+import com.nyala.core.application.handler.OAuth2Handler
 import com.nyala.core.infrastructure.adapter.m3u.parser.M3uParser
 import com.nyala.core.infrastructure.config.HttpServerModule
 import com.nyala.core.infrastructure.di.IsolatedKoinVerticle
@@ -13,6 +16,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.rxjava.core.buffer.Buffer
 import io.vertx.rxjava.core.http.HttpServer
 import io.vertx.rxjava.core.http.HttpServerRequest
+import io.vertx.rxjava.core.http.HttpServerResponse
 import io.vertx.rxjava.ext.web.FileUpload
 import io.vertx.rxjava.ext.web.Router
 import io.vertx.rxjava.ext.web.RoutingContext
@@ -21,10 +25,19 @@ import lombok.extern.slf4j.Slf4j
 import org.koin.core.component.inject
 import org.slf4j.LoggerFactory.getLogger
 import rx.Single
+import java.io.File
 import java.util.*
 
 /**
- * Referenced in the config.json
+ * This Verticle starts the main HTTP Server where the main router is mounted and
+ * the endpoints of the API are defined and handled. It acts as a broker for HTTP requests
+ *
+ * - Receives the request
+ * - Delegates to EventBus route
+ *
+ * Each API endpoint delegates it's handling to a XXXHandler, which, in turn, uses
+ * the EventBus to send a message containing the request information. A specific
+ * verticle picks up the request via an EventBus consumer and replies back.
  *
  */
 @Slf4j
@@ -37,6 +50,8 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
     }
 
     private val statusEndpointHandler: StatusEndpointHandler by inject()
+    private val oauth2Handler: OAuth2Handler by inject()
+
     private var uuid = ""
 
     override fun start(startFuture: Future<Void>) {
@@ -45,7 +60,11 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
         startHttpServer(startFuture)
     }
 
-    // https://stackoverflow.com/questions/63359639/vertx-webclient-shared-vs-single-across-multiple-verticles
+    /**
+     * The appName is being generated here so dependency graph is unique per verticle instance
+     *
+     * See: https://stackoverflow.com/questions/63359639/vertx-webclient-shared-vs-single-across-multiple-verticles
+     */
     override fun getAppName(): String {
         val appName = "HttpServer:$uuid"
         log.info("App Name: $appName")
@@ -96,15 +115,25 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
         log.info("Status endpoint handler ID: {}", statusEndpointHandler)
 
         val router = Router.router(vertx)
+
         router.route().consumes("application/json")
         router.route().produces("application/json")
         router.route().handler { context: RoutingContext ->
             context.response().headers().add("Content-Type", "application/json")
+            val currentUri = context.request().absoluteURI()
+            log.info("Setting up current URI: {}", currentUri)
+            SharedCache.putData(vertx, SharedCache.CURRENT_SERVER_URI_KEY_NAME, currentUri)
             context.next()
         }
-        //router.route().failureHandler()
+
+        router.route().failureHandler(FailureExceptionHandler())
         router.route().handler(BodyHandler.create())
+
         router.get("/channels/:channelId").handler { handleGetChannels(it) }
+        router.post("/oauth2/authUrl").handler(oauth2Handler)
+        router.get("/oauth2/validate/code").handler(oauth2Handler)
+        router.post("/m3u").handler { ctx: RoutingContext -> handleM3uUpload(ctx) }
+
         router["/_status"].handler {
            try {
                statusEndpointHandler.status(it)
@@ -113,7 +142,6 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
            }
         }
 
-        router.post("/m3u").handler { ctx: RoutingContext -> handleM3uUpload(ctx) }
         return router
     }
 
@@ -156,5 +184,9 @@ class HttpServerVerticle : IsolatedKoinVerticle() {
                     log.error("Error occurred", it)
                     response.setStatusCode(500).end(Json.encodePrettily(JsonObject(it.message)))
                 })
+    }
+
+    private fun sendErrorCode(response: HttpServerResponse, it: Throwable) {
+        response.setStatusCode(500).end(Json.encodePrettily(JsonObject(it.message)))
     }
 }

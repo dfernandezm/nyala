@@ -3,11 +3,9 @@ package com.nyala.core.infrastructure.adapter;
 import io.vertx.core.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Singleton;
 import java.util.Optional;
 
 @Slf4j
-@Singleton
 public class RedisResponseMapper {
 
     private JsonArray wrapResponseAsJsonArrayIfNeeded(JsonArray value){
