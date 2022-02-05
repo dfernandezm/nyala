@@ -21,7 +21,7 @@ public class ChannelProxyHandler {
      * Url to m3u8 playlist ("https://e10.habrox.xyz/ingestnb4s/espn3_sur/f.m3u8";)
      */
     private String originalUrl;
-    private String defaultUserAgent =  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36";
+    private static String defaultUserAgent =  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36";
     private static String HLS_CONTENT_TYPE = "application/vnd.apple.mpegurl";
 
     public void proxy(final RoutingContext routingContext) {
@@ -80,5 +80,11 @@ public class ChannelProxyHandler {
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
         } catch (Exception ignored) {
         }
+    }
+
+    public static void main(String args[]) {
+        String url =
+                "https://nogeovod-fy.atresmedia.com/vsg/_definst_/assets3/2021/05/14/749BC1B2-8361-43E4-8756-CA0B0FCC02E7/hls.smil/playlist.m3u8?pulse=assets3/2021/05/14/749BC1B2-8361-43E4-8756-CA0B0FCC02E7/|1626490800|8368761161d6bf5db0ce4610889cd24a";
+        proxyUrl(url, "https://a3player.com", "https://a3player.com", defaultUserAgent);
     }
 }

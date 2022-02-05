@@ -14,7 +14,7 @@ class Oauth2Module(private val vertx: Vertx) {
     private val context: Context = vertx.orCreateContext
 
     val oauth2Module = module {
-        single { GoogleOAuth2CredentialProvider(credentialHelper = get(), oauth2Cache = get(), serverInfo = get()) as OAuth2CredentialProvider}
+        single { GoogleOAuth2CredentialProvider(credentialHelper = get(), oauth2Cache = get(), serverInfo = get())}
         single { OAuth2Cache() }
         single { ServerInfo(vertx, context) }
         single { GoogleCredentialHelper() }

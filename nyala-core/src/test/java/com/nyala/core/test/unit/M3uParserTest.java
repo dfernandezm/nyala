@@ -36,7 +36,6 @@ public class M3uParserTest {
         assertThat(m3uPlaylist.isEmpty(), is(true));
     }
 
-    //@Disabled("Cannot use m3u8 parser with m3u")
     @Test
     public void readPlaylistWithParserTest() throws IOException {
         String m3u = testHelper.readFileToString("testdata/samplePlaylist.m3u");
