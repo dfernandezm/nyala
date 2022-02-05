@@ -1,7 +1,7 @@
 # Nyala
 
-Nyala is template project to develop microservices or distributed monoliths with Vert.x, using Kotlin and Java.
-
+Nyala is template project to develop microservices or distributed monoliths with Vert.x, 
+using Kotlin and Java.
 
 Run tests:
 
@@ -15,12 +15,17 @@ Build fatJar:
 ```
 
 Status endpoint:
-
+```
 http://localhost:9014/_status
+```
 
 Main endpoint:
-
+```
 curl -i -XPOST http://localhost:9014/channels
+```
+## Use Vert.x Launcher in IDEA
+
+![](vertx-launcher.png)
 
 ## Main components 
 
