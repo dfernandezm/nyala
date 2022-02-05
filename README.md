@@ -11,7 +11,10 @@ Run tests:
 
 Build fatJar:
 ```
-
+java -jar \ 
+-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
+nyala-core/build/libs/nyala-core-1.0.0.jar run com.nyala.core.application.verticle.MainStarter \
+-conf docker/config.json
 ```
 
 Status endpoint:

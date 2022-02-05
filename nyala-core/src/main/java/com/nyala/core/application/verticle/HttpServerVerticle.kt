@@ -40,6 +40,8 @@ import java.util.*
  * verticle picks up the request via an EventBus consumer and replies back.
  *
  */
+// Multiple instances of HttpServerVerticle:
+// https://stackoverflow.com/questions/62558613/in-vert-x-does-it-make-sense-to-create-multiple-httpserver-instances-in-a-runti
 @Slf4j
 class HttpServerVerticle : IsolatedKoinVerticle() {
 

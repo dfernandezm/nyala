@@ -130,12 +130,6 @@ class GmailService(private val credentialProvider: OAuth2CredentialProvider) {
         val action = MailAction.MARK_READ
         val timeframe = Timeframe.BI_WEEKLY
 
-        val cmd = CleanupCommand(user,
-                label = label,
-                action = MailAction.MARK_READ,
-                timeframe = timeframe
-        )
-
         executeCmd(user, label, action, timeframe)
     }
 }

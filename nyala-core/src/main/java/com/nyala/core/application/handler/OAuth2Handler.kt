@@ -101,6 +101,7 @@ class OAuth2Handler(private val vertx: Vertx): Handler<RoutingContext> {
     private fun validateRequestParams(requestParams: MultiMap) {
         val code = requestParams.get("code")
         val state = requestParams.get("state")
+        log.info("Validated params $code, $state")
     }
 
     private fun sendErrorCode(response: HttpServerResponse, statusCode: Int, error: Throwable) {

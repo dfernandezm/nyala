@@ -89,5 +89,6 @@ fun main(args: Array<String>) {
     val secret = ""
 
     val credential = provider.authorize(clientId, secret)!!
+    println("Args are $args")
     println("Tokens ${credential.accessToken}, ${credential.refreshToken}")
 }
