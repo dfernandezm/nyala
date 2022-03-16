@@ -1,4 +1,4 @@
 rootProject.name =' nyala'
 include 'nyala-common'
 include 'nyala-core'
-
+include 'nyala-media-input-domain'

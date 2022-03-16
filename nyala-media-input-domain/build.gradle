@@ -1,0 +1,20 @@
+plugins {
+    id "java"
+    id "net.ltgt.apt-idea" version "0.21"
+    id "org.jetbrains.kotlin.jvm"
+    id "application"
+}
+
+apply plugin: 'java'
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
